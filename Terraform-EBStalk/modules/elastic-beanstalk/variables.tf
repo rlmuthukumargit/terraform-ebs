@@ -1,0 +1,82 @@
+################################################################################
+# Elastic Beanstalk Module — Variables
+################################################################################
+
+variable "app_name" {
+  description = "Name of the Elastic Beanstalk application"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name (dev, qa, prod)"
+  type        = string
+}
+
+variable "solution_stack_name" {
+  description = "Elastic Beanstalk solution stack (platform). Example: '64bit Amazon Linux 2023 v4.0.3 running Corretto 17'"
+  type        = string
+}
+
+variable "instance_type" {
+  description = "EC2 instance type for EB environment"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "min_instances" {
+  description = "Minimum number of instances in the Auto Scaling Group"
+  type        = number
+  default     = 1
+}
+
+variable "max_instances" {
+  description = "Maximum number of instances in the Auto Scaling Group"
+  type        = number
+  default     = 4
+}
+
+# ------- VPC -------
+variable "vpc_id" {
+  description = "VPC ID to deploy the EB environment into"
+  type        = string
+}
+
+variable "public_subnet_ids" {
+  description = "List of public subnet IDs for the ALB"
+  type        = list(string)
+}
+
+variable "private_subnet_ids" {
+  description = "List of private subnet IDs for EC2 instances"
+  type        = list(string)
+}
+
+# ------- S3 App Source -------
+variable "app_s3_bucket" {
+  description = "S3 bucket containing the application JAR/WAR artifact"
+  type        = string
+}
+
+variable "app_s3_key" {
+  description = "S3 object key for the application JAR/WAR artifact"
+  type        = string
+}
+
+variable "app_version_label" {
+  description = "Version label for the application version"
+  type        = string
+  default     = "v1"
+}
+
+variable "app_version_max_count" {
+  description = "Maximum number of application versions to retain"
+  type        = number
+  default     = 10
+}
+
+# ------- Logging -------
+variable "log_retention_days" {
+  description = "CloudWatch log retention in days"
+  type        = number
+  default     = 30
+}
