@@ -177,16 +177,24 @@ resource "aws_elastic_beanstalk_environment" "this" {
     value     = join(",", var.private_subnet_ids)
   }
 
-  setting {
-    namespace = "aws:ec2:vpc"
-    name      = "ELBSubnets"
-    value     = join(",", var.public_subnet_ids)
+  # ELBSubnets — only needed when EB manages its own ALB
+  dynamic "setting" {
+    for_each = var.shared_alb_arn == "" ? [1] : []
+    content {
+      namespace = "aws:ec2:vpc"
+      name      = "ELBSubnets"
+      value     = join(",", var.public_subnet_ids)
+    }
   }
 
-  setting {
-    namespace = "aws:ec2:vpc"
-    name      = "ELBScheme"
-    value     = var.alb_scheme
+  # ELBScheme — only needed when EB manages its own ALB
+  dynamic "setting" {
+    for_each = var.shared_alb_arn == "" ? [1] : []
+    content {
+      namespace = "aws:ec2:vpc"
+      name      = "ELBScheme"
+      value     = var.alb_scheme
+    }
   }
 
   # ---------------------------------------------------------------------------
@@ -204,6 +212,16 @@ resource "aws_elastic_beanstalk_environment" "this" {
     value     = "application"
   }
 
+  # Shared ALB — attach to an existing ALB instead of creating a new one
+  dynamic "setting" {
+    for_each = var.shared_alb_arn != "" ? [1] : []
+    content {
+      namespace = "aws:elbv2:loadbalancer"
+      name      = "SharedLoadBalancer"
+      value     = var.shared_alb_arn
+    }
+  }
+
   setting {
     namespace = "aws:elasticbeanstalk:environment"
     name      = "ServiceRole"
@@ -219,9 +237,9 @@ resource "aws_elastic_beanstalk_environment" "this" {
     }
   }
 
-  # Optional custom ALB security groups
+  # Optional custom ALB security groups (only when EB manages its own ALB)
   dynamic "setting" {
-    for_each = length(var.alb_security_group_ids) > 0 ? [1] : []
+    for_each = var.shared_alb_arn == "" && length(var.alb_security_group_ids) > 0 ? [1] : []
     content {
       namespace = "aws:elbv2:loadbalancer"
       name      = "SecurityGroups"
@@ -229,11 +247,14 @@ resource "aws_elastic_beanstalk_environment" "this" {
     }
   }
 
-  # ALB listener on port 80
-  setting {
-    namespace = "aws:elbv2:listener:default"
-    name      = "ListenerEnabled"
-    value     = "true"
+  # ALB listener on port 80 (only when EB manages its own ALB)
+  dynamic "setting" {
+    for_each = var.shared_alb_arn == "" ? [1] : []
+    content {
+      namespace = "aws:elbv2:listener:default"
+      name      = "ListenerEnabled"
+      value     = "true"
+    }
   }
 
   # ---------------------------------------------------------------------------

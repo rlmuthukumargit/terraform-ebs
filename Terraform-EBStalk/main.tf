@@ -43,7 +43,23 @@ module "security_groups" {
 }
 
 # -----------------------------------------------------------------------------
-# 4. Elastic Beanstalk (App + Version from S3 + Environment with ALB & ASG)
+# 4. Shared ALB (optional — for running multiple apps behind one ALB)
+# -----------------------------------------------------------------------------
+module "alb" {
+  count  = var.enable_shared_alb ? 1 : 0
+  source = "./modules/alb"
+
+  app_name           = var.app_name
+  environment        = var.environment
+  vpc_id             = module.vpc.vpc_id
+  subnet_ids         = module.vpc.public_subnet_ids
+  security_group_ids = [module.security_groups.alb_security_group_id]
+  internal           = var.alb_scheme == "internal"
+  certificate_arn    = var.alb_certificate_arn
+}
+
+# -----------------------------------------------------------------------------
+# 5. Elastic Beanstalk (App + Version from S3 + Environment with ALB & ASG)
 # -----------------------------------------------------------------------------
 module "elastic_beanstalk" {
   source = "./modules/elastic-beanstalk"
@@ -69,6 +85,9 @@ module "elastic_beanstalk" {
   alb_security_group_ids      = [module.security_groups.alb_security_group_id]
   instance_security_group_ids = [module.security_groups.ec2_security_group_id]
 
+  # Shared ALB — pass ARN if enabled, empty string if disabled (EB manages own)
+  shared_alb_arn = var.enable_shared_alb ? module.alb[0].alb_arn : ""
+
   # S3 app source
   app_s3_bucket     = var.app_s3_bucket
   app_s3_key        = var.app_s3_key
@@ -79,7 +98,7 @@ module "elastic_beanstalk" {
 }
 
 # -----------------------------------------------------------------------------
-# 5. CloudWatch Alarms (CPU, Unhealthy Hosts, Latency, EB Health)
+# 6. CloudWatch Alarms (CPU, Unhealthy Hosts, Latency, EB Health)
 # -----------------------------------------------------------------------------
 module "cloudwatch" {
   source = "./modules/cloudwatch"

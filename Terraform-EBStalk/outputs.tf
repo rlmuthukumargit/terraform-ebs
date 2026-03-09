@@ -91,3 +91,22 @@ output "sns_topic_arn" {
   description = "SNS topic ARN used for alarm notifications"
   value       = module.cloudwatch.sns_topic_arn
 }
+
+################################################################################
+# Shared ALB
+################################################################################
+
+output "alb_dns_name" {
+  description = "DNS name of the shared ALB (empty if shared ALB disabled)"
+  value       = var.enable_shared_alb ? module.alb[0].alb_dns_name : ""
+}
+
+output "alb_arn" {
+  description = "ARN of the shared ALB (empty if shared ALB disabled)"
+  value       = var.enable_shared_alb ? module.alb[0].alb_arn : ""
+}
+
+output "alb_http_listener_arn" {
+  description = "HTTP listener ARN of the shared ALB"
+  value       = var.enable_shared_alb ? module.alb[0].http_listener_arn : ""
+}

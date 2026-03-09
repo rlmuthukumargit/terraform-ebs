@@ -228,3 +228,19 @@ variable "eb_environment_variables" {
   type        = map(string)
   default     = {}
 }
+
+# =============================================================================
+# Shared ALB
+# =============================================================================
+variable "enable_shared_alb" {
+  description = "Create a shared ALB for multiple apps (true) or let EB manage its own ALB (false)"
+  type        = bool
+  default     = false
+}
+
+variable "alb_certificate_arn" {
+  description = "ACM certificate ARN for HTTPS on shared ALB (leave empty for HTTP only)"
+  type        = string
+  default     = ""
+}
+

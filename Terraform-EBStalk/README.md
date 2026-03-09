@@ -266,6 +266,7 @@ These files control environment-specific values including:
 | `modules/oidc` | IAM OIDC provider + deploy role |
 | `modules/vpc` | VPC, subnets, IGW, NAT, route tables |
 | `modules/security-groups` | ALB SG + EC2 SG |
+| `modules/alb` | **Shared ALB** for multi-app support (optional) |
 | `modules/elastic-beanstalk` | EB app, version, environment, IAM roles |
 | `modules/cloudwatch` | CloudWatch alarms + SNS topic |
 
@@ -278,16 +279,21 @@ flowchart LR
     OIDC["module.oidc\nOIDC provider + deploy role"]
     VPC["module.vpc\nVPC + subnets"]
     SG["module.security_groups\nALB SG + EC2 SG"]
+    ALB["module.alb\nShared ALB (optional)"]
     EB["module.elastic_beanstalk\nApp + Version + Environment"]
     CW["module.cloudwatch\nAlarms + SNS"]
 
     ROOT --> OIDC
     ROOT --> VPC
     ROOT --> SG
+    ROOT --> ALB
     ROOT --> EB
     ROOT --> CW
 
     VPC --> SG
+    VPC --> ALB
+    SG --> ALB
+    ALB --> EB
     VPC --> EB
     SG --> EB
     EB --> CW
@@ -315,12 +321,12 @@ Terraform-EBStalk/
 │   ├── oidc/                    # IAM OIDC + deploy role
 │   ├── vpc/                     # VPC + subnets + gateways
 │   ├── security-groups/         # ALB SG + EC2 SG
+│   ├── alb/                     # Shared ALB (optional, multi-app)
 │   ├── elastic-beanstalk/       # EB app + env + ASG + ALB
 │   └── cloudwatch/              # Alarms + SNS
 ├── docs/
 │   ├── architecture.png         # Architecture diagram (image)
-│   ├── architecture.svg         # Architecture diagram (SVG)
-│   └── architecture.drawio      # Architecture diagram (editable)
+│   └── architecture.svg         # Architecture diagram (SVG)
 └── sample-app/                  # Sample Java application
 ```
 

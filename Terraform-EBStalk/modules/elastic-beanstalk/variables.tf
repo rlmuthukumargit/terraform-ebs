@@ -127,3 +127,11 @@ variable "eb_environment_variables" {
   type        = map(string)
   default     = {}
 }
+
+# ------- Shared ALB -------
+variable "shared_alb_arn" {
+  description = "ARN of a shared ALB. If set, EB uses this ALB instead of creating its own."
+  type        = string
+  default     = ""
+}
+

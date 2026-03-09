@@ -55,3 +55,7 @@ eb_environment_variables = {
   APP_ENV     = "prod"
   SERVER_PORT = "5000"
 }
+
+# --- Shared ALB (set to true to share one ALB across multiple apps) ---
+enable_shared_alb   = true
+# alb_certificate_arn = ""  # Optional: ACM cert ARN for HTTPS
