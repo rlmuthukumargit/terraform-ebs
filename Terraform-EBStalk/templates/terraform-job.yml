@@ -1,0 +1,90 @@
+################################################################################
+# Reusable Terraform Job Template
+#
+# Called by azure-pipelines.yml for each environment stage.
+# Performs: install → init → validate → plan → apply
+################################################################################
+
+parameters:
+  - name: environment
+    type: string
+  - name: awsServiceConnection
+    type: string
+  - name: tfVarsFile
+    type: string
+  - name: terraformVersion
+    type: string
+    default: "1.9.0"
+  - name: workingDirectory
+    type: string
+
+jobs:
+  - deployment: Terraform_${{ parameters.environment }}
+    displayName: "Terraform — ${{ parameters.environment }}"
+    environment: "${{ parameters.environment }}"        # Enables approval gates in Azure DevOps Environments
+    pool:
+      vmImage: "ubuntu-latest"
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            # ---------------------------------------------------------------
+            # 1. Checkout source code
+            # ---------------------------------------------------------------
+            - checkout: self
+              fetchDepth: 1
+
+            # ---------------------------------------------------------------
+            # 2. Install Terraform
+            # ---------------------------------------------------------------
+            - task: TerraformInstaller@1
+              displayName: "Install Terraform ${{ parameters.terraformVersion }}"
+              inputs:
+                terraformVersion: "${{ parameters.terraformVersion }}"
+
+            # ---------------------------------------------------------------
+            # 3. Terraform Init
+            # ---------------------------------------------------------------
+            - task: TerraformTaskV4@4
+              displayName: "Terraform Init"
+              inputs:
+                provider: "aws"
+                command: "init"
+                workingDirectory: "${{ parameters.workingDirectory }}"
+                backendServiceAWS: "${{ parameters.awsServiceConnection }}"
+                backendAWSBucketName: "$(TF_STATE_BUCKET)"       # Set via variable group or pipeline variables
+                backendAWSKey: "ebs/${{ parameters.environment }}/terraform.tfstate"
+
+            # ---------------------------------------------------------------
+            # 4. Terraform Validate
+            # ---------------------------------------------------------------
+            - task: TerraformTaskV4@4
+              displayName: "Terraform Validate"
+              inputs:
+                provider: "aws"
+                command: "validate"
+                workingDirectory: "${{ parameters.workingDirectory }}"
+
+            # ---------------------------------------------------------------
+            # 5. Terraform Plan
+            # ---------------------------------------------------------------
+            - task: TerraformTaskV4@4
+              displayName: "Terraform Plan"
+              inputs:
+                provider: "aws"
+                command: "plan"
+                workingDirectory: "${{ parameters.workingDirectory }}"
+                environmentServiceNameAWS: "${{ parameters.awsServiceConnection }}"
+                commandOptions: "-var-file=${{ parameters.tfVarsFile }} -out=tfplan"
+
+            # ---------------------------------------------------------------
+            # 6. Terraform Apply (auto-approve from saved plan)
+            # ---------------------------------------------------------------
+            - task: TerraformTaskV4@4
+              displayName: "Terraform Apply"
+              inputs:
+                provider: "aws"
+                command: "apply"
+                workingDirectory: "${{ parameters.workingDirectory }}"
+                environmentServiceNameAWS: "${{ parameters.awsServiceConnection }}"
+                commandOptions: "tfplan"

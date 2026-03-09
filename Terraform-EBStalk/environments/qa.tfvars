@@ -8,8 +8,9 @@ aws_account_id = "222222222222" # <-- Replace with your QA AWS account ID
 environment    = "qa"
 
 # --- OIDC ---
-oidc_provider_url     = "https://token.actions.githubusercontent.com"
-oidc_allowed_subjects = ["repo:your-org/your-repo:ref:refs/heads/release/*"] # <-- Update
+# For Azure DevOps: Use format "sc://<org>/<project>/<service-connection-name>"
+oidc_provider_url     = "https://vstoken.dev.azure.com/<your-azure-devops-org-id>"  # <-- Replace with your Azure DevOps org
+oidc_allowed_subjects = ["sc://<org>/<project>/aws-qa-oidc"]                         # <-- Update with your service connection
 
 # --- VPC ---
 vpc_cidr             = "10.1.0.0/16"

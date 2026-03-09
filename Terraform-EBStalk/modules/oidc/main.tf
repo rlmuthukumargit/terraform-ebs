@@ -12,6 +12,10 @@ resource "aws_iam_openid_connect_provider" "this" {
   client_id_list  = var.oidc_client_ids
   thumbprint_list = var.oidc_thumbprints
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   tags = {
     Name        = "${var.environment}-oidc-provider"
     Environment = var.environment
@@ -52,6 +56,10 @@ resource "aws_iam_role" "oidc_role" {
   name               = "${var.environment}-oidc-deploy-role"
   assume_role_policy = data.aws_iam_policy_document.oidc_trust.json
   max_session_duration = 3600
+
+  lifecycle {
+    prevent_destroy = true
+  }
 
   tags = {
     Name        = "${var.environment}-oidc-deploy-role"

@@ -3,7 +3,8 @@
 #
 # Authentication: OIDC via AssumeRoleWithWebIdentity
 # - No static access keys or secret keys
-# - CI/CD pipeline (GitHub Actions, GitLab CI) supplies a web identity token
+# - CI/CD pipeline (Azure DevOps, GitHub Actions, GitLab CI) supplies a
+#   web identity token
 # - The provider assumes a role in the target account using that token
 ################################################################################
 

@@ -21,6 +21,10 @@ resource "aws_iam_role" "ec2_role" {
   name               = "${var.app_name}-${var.environment}-ec2-role"
   assume_role_policy = data.aws_iam_policy_document.ec2_assume.json
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   tags = {
     Name        = "${var.app_name}-${var.environment}-ec2-role"
     Environment = var.environment
@@ -52,6 +56,10 @@ resource "aws_iam_role_policy_attachment" "ec2_s3_read" {
 resource "aws_iam_instance_profile" "ec2_profile" {
   name = "${var.app_name}-${var.environment}-ec2-profile"
   role = aws_iam_role.ec2_role.name
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -70,6 +78,10 @@ data "aws_iam_policy_document" "eb_assume" {
 resource "aws_iam_role" "eb_service_role" {
   name               = "${var.app_name}-${var.environment}-eb-service-role"
   assume_role_policy = data.aws_iam_policy_document.eb_assume.json
+
+  lifecycle {
+    prevent_destroy = true
+  }
 
   tags = {
     Name        = "${var.app_name}-${var.environment}-eb-service-role"
@@ -99,6 +111,10 @@ resource "aws_elastic_beanstalk_application" "this" {
     service_role          = aws_iam_role.eb_service_role.arn
     max_count             = var.app_version_max_count
     delete_source_from_s3 = false
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 
   tags = {
@@ -134,6 +150,10 @@ resource "aws_elastic_beanstalk_environment" "this" {
   solution_stack_name = var.solution_stack_name
   version_label       = aws_elastic_beanstalk_application_version.this.name
   tier                = "WebServer"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 
   # ---------------------------------------------------------------------------
   # VPC Configuration

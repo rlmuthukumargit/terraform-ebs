@@ -1,0 +1,122 @@
+################################################################################
+# Azure DevOps Multi-Stage Pipeline — Terraform EBS Deployment
+#
+# Stages: Dev → QA → Prod
+# Auth:   OIDC (Workload Identity Federation) via AWS service connection
+#
+# Prerequisites:
+#   1. Install "Terraform" extension from Azure DevOps Marketplace
+#   2. Create an AWS service connection (Workload Identity Federation)
+#      in Project Settings → Service connections for each environment
+#   3. Configure the S3 backend bucket and DynamoDB lock table in AWS
+#   4. Update variable group "terraform-common" with shared settings
+################################################################################
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - release/*
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+################################################################################
+# Variables
+################################################################################
+variables:
+  - name: terraformVersion
+    value: "1.9.0"
+  - name: workingDirectory
+    value: "$(System.DefaultWorkingDirectory)/Terraform-EBStalk"
+
+################################################################################
+# Stages
+################################################################################
+stages:
+  # ===========================================================================
+  # DEV Stage — auto-triggered on develop branch
+  # ===========================================================================
+  - stage: Dev
+    displayName: "Deploy to Dev"
+    condition: |
+      or(
+        eq(variables['Build.SourceBranch'], 'refs/heads/develop'),
+        eq(variables['Build.SourceBranch'], 'refs/heads/main')
+      )
+    variables:
+      - name: environment
+        value: "dev"
+      - name: awsServiceConnection
+        value: "aws-dev-oidc"         # <-- Replace with your service connection name
+      - name: tfVarsFile
+        value: "environments/dev.tfvars"
+    jobs:
+      - template: templates/terraform-job.yml
+        parameters:
+          environment: ${{ variables.environment }}
+          awsServiceConnection: $(awsServiceConnection)
+          tfVarsFile: $(tfVarsFile)
+          terraformVersion: $(terraformVersion)
+          workingDirectory: $(workingDirectory)
+
+  # ===========================================================================
+  # QA Stage — requires Dev success + manual approval
+  # ===========================================================================
+  - stage: QA
+    displayName: "Deploy to QA"
+    dependsOn: Dev
+    condition: |
+      and(
+        succeeded(),
+        or(
+          eq(variables['Build.SourceBranch'], 'refs/heads/main'),
+          startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')
+        )
+      )
+    variables:
+      - name: environment
+        value: "qa"
+      - name: awsServiceConnection
+        value: "aws-qa-oidc"          # <-- Replace with your service connection name
+      - name: tfVarsFile
+        value: "environments/qa.tfvars"
+    jobs:
+      - template: templates/terraform-job.yml
+        parameters:
+          environment: ${{ variables.environment }}
+          awsServiceConnection: $(awsServiceConnection)
+          tfVarsFile: $(tfVarsFile)
+          terraformVersion: $(terraformVersion)
+          workingDirectory: $(workingDirectory)
+
+  # ===========================================================================
+  # PROD Stage — requires QA success + manual approval
+  # ===========================================================================
+  - stage: Prod
+    displayName: "Deploy to Production"
+    dependsOn: QA
+    condition: |
+      and(
+        succeeded(),
+        eq(variables['Build.SourceBranch'], 'refs/heads/main')
+      )
+    variables:
+      - name: environment
+        value: "prod"
+      - name: awsServiceConnection
+        value: "aws-prod-oidc"        # <-- Replace with your service connection name
+      - name: tfVarsFile
+        value: "environments/prod.tfvars"
+    jobs:
+      - template: templates/terraform-job.yml
+        parameters:
+          environment: ${{ variables.environment }}
+          awsServiceConnection: $(awsServiceConnection)
+          tfVarsFile: $(tfVarsFile)
+          terraformVersion: $(terraformVersion)
+          workingDirectory: $(workingDirectory)

@@ -15,6 +15,10 @@ resource "aws_sns_topic" "alarms" {
   count = var.create_sns_topic ? 1 : 0
   name  = "${var.environment}-eb-alarms"
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   tags = {
     Name        = "${var.environment}-eb-alarms"
     Environment = var.environment
@@ -56,6 +60,10 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   alarm_actions = [local.sns_topic_arn]
   ok_actions    = [local.sns_topic_arn]
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   tags = {
     Name        = "${var.environment}-eb-cpu-high"
     Environment = var.environment
@@ -86,6 +94,10 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_hosts" {
   alarm_actions = [local.sns_topic_arn]
   ok_actions    = [local.sns_topic_arn]
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   tags = {
     Name        = "${var.environment}-eb-unhealthy-hosts"
     Environment = var.environment
@@ -115,6 +127,10 @@ resource "aws_cloudwatch_metric_alarm" "latency_high" {
   alarm_actions = [local.sns_topic_arn]
   ok_actions    = [local.sns_topic_arn]
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   tags = {
     Name        = "${var.environment}-eb-latency-high"
     Environment = var.environment
@@ -143,6 +159,10 @@ resource "aws_cloudwatch_metric_alarm" "env_health" {
 
   alarm_actions = [local.sns_topic_arn]
   ok_actions    = [local.sns_topic_arn]
+
+  lifecycle {
+    prevent_destroy = true
+  }
 
   tags = {
     Name        = "${var.environment}-eb-env-health"
