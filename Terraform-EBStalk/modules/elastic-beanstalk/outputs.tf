@@ -27,6 +27,11 @@ output "cname" {
   value       = aws_elastic_beanstalk_environment.this.cname
 }
 
+output "domain_name" {
+  description = "Full Elastic Beanstalk domain name (<cname_prefix>.<region>.elasticbeanstalk.com)"
+  value       = aws_elastic_beanstalk_environment.this.cname
+}
+
 output "autoscaling_groups" {
   description = "Auto Scaling Groups associated with the EB environment"
   value       = aws_elastic_beanstalk_environment.this.autoscaling_groups

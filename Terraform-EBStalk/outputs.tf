@@ -61,6 +61,11 @@ output "eb_cname" {
   value       = module.elastic_beanstalk.cname
 }
 
+output "eb_domain_name" {
+  description = "Full Elastic Beanstalk domain name (e.g. myapp-dev.us-east-1.elasticbeanstalk.com)"
+  value       = module.elastic_beanstalk.domain_name
+}
+
 output "eb_app_version" {
   description = "Currently deployed application version"
   value       = module.elastic_beanstalk.app_version

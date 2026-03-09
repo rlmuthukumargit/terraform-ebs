@@ -1,0 +1,346 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1350" viewBox="0 0 1500 1350">
+  <defs>
+    <style>
+      .title { font: 700 28px 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 14px 'Segoe UI', Arial, sans-serif; fill: #475569; }
+      .section-title { font: 700 16px 'Segoe UI', Arial, sans-serif; fill: #1e293b; }
+      .box-title { font: 600 14px 'Segoe UI', Arial, sans-serif; }
+      .box-text { font: 400 12px 'Segoe UI', Arial, sans-serif; fill: #334155; }
+      .box-text-sm { font: 400 11px 'Segoe UI', Arial, sans-serif; fill: #64748b; }
+      .badge { font: 600 10px 'Segoe UI', Arial, sans-serif; fill: #ffffff; }
+      .arrow { stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .arrow-dashed { stroke-width: 1.5; fill: none; stroke-dasharray: 6,4; marker-end: url(#arrowhead-gray); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="arrowhead-gray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8"/>
+    </marker>
+    <linearGradient id="headerGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e3a5f"/>
+    </linearGradient>
+    <linearGradient id="vpcGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eff6ff"/>
+      <stop offset="100%" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="publicGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#d1fae5"/>
+    </linearGradient>
+    <linearGradient id="privateGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="100%" stop-color="#fde68a"/>
+    </linearGradient>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#00000015"/>
+    </filter>
+    <filter id="shadow-sm" x="-2%" y="-2%" width="104%" height="108%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#00000010"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1500" height="1350" fill="#f8fafc" rx="0"/>
+
+  <!-- Title Bar -->
+  <rect x="0" y="0" width="1500" height="70" fill="url(#headerGrad)"/>
+  <text x="40" y="35" class="title" fill="#ffffff">Terraform Elastic Beanstalk — Detailed Architecture</text>
+  <text x="40" y="55" class="subtitle" fill="#94a3b8">Reusable modules • Multi-environment (Dev / QA / Prod) • Azure DevOps CI/CD • OIDC Authentication</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- CI/CD Layer (top) -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Azure DevOps Pipeline -->
+  <rect x="40" y="95" width="430" height="105" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="40" y="95" width="430" height="28" rx="10" fill="#2563eb"/>
+  <rect x="40" y="113" width="430" height="10" fill="#2563eb"/>
+  <text x="55" y="115" class="badge">AZURE DEVOPS PIPELINE</text>
+  <text x="55" y="143" class="box-text">Build Sample App (Maven → JAR + Procfile → ZIP)</text>
+  <text x="55" y="161" class="box-text">Stages: Build → Dev → QA → Prod</text>
+  <text x="55" y="179" class="box-text">OIDC service connections per environment</text>
+
+  <!-- Terraform Backend -->
+  <rect x="530" y="95" width="300" height="105" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="530" y="95" width="300" height="28" rx="10" fill="#7c3aed"/>
+  <rect x="530" y="113" width="300" height="10" fill="#7c3aed"/>
+  <text x="545" y="115" class="badge">TERRAFORM STATE BACKEND</text>
+  <text x="545" y="143" class="box-text">Azure Blob Storage (azurerm)</text>
+  <text x="545" y="161" class="box-text">Key: ebs/&lt;env&gt;/terraform.tfstate</text>
+  <text x="545" y="179" class="box-text-sm">Isolated state per environment</text>
+
+  <!-- OIDC Module -->
+  <rect x="890" y="95" width="260" height="105" rx="10" fill="#ffffff" stroke="#ea580c" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="890" y="95" width="260" height="28" rx="10" fill="#ea580c"/>
+  <rect x="890" y="113" width="260" height="10" fill="#ea580c"/>
+  <text x="905" y="115" class="badge">MODULE: OIDC</text>
+  <text x="905" y="143" class="box-text">IAM OIDC Identity Provider</text>
+  <text x="905" y="161" class="box-text">IAM Deploy Role</text>
+  <text x="905" y="179" class="box-text-sm">Keyless auth (Azure DevOps → AWS)</text>
+
+  <!-- S3 Artifacts -->
+  <rect x="1210" y="95" width="250" height="105" rx="10" fill="#ffffff" stroke="#0d9488" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1210" y="95" width="250" height="28" rx="10" fill="#0d9488"/>
+  <rect x="1210" y="113" width="250" height="10" fill="#0d9488"/>
+  <text x="1225" y="115" class="badge">S3 ARTIFACT BUCKET</text>
+  <text x="1225" y="143" class="box-text">Application JAR/WAR bundle</text>
+  <text x="1225" y="161" class="box-text">Per-environment bucket</text>
+  <text x="1225" y="179" class="box-text-sm">my-app-artifacts-&lt;env&gt;</text>
+
+  <!-- Arrows: Pipeline → Backend, Pipeline → OIDC -->
+  <line x1="470" y1="147" x2="530" y2="147" class="arrow" stroke="#475569"/>
+  <line x1="830" y1="147" x2="890" y2="147" class="arrow" stroke="#475569"/>
+  <line x1="1150" y1="147" x2="1210" y2="147" class="arrow" stroke="#475569"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Domain Name / CNAME Banner -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <rect x="40" y="225" width="1420" height="40" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="60" y="250" class="section-title" fill="#15803d">🌐 Domain Name (CNAME):</text>
+  <text x="280" y="250" class="box-text" fill="#166534">&lt;cname_prefix&gt;.&lt;region&gt;.elasticbeanstalk.com</text>
+  <text x="650" y="250" class="box-text-sm">Example: myapp-dev.us-east-1.elasticbeanstalk.com  •  Configured via eb_environment_cname_prefix variable</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- AWS VPC (main architecture area) -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <rect x="40" y="285" width="1420" height="660" rx="14" fill="url(#vpcGrad)" stroke="#2563eb" stroke-width="2" filter="url(#shadow)"/>
+  <text x="60" y="315" class="section-title" fill="#1d4ed8">☁ AWS VPC  (10.x.0.0/16)  •  module.vpc</text>
+  <text x="450" y="315" class="box-text-sm">DNS Support + DNS Hostnames enabled  •  2 Availability Zones</text>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <!-- Internet Gateway -->
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <rect x="80" y="340" width="200" height="55" rx="8" fill="#ffffff" stroke="#0369a1" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <text x="95" y="362" class="box-title" fill="#0369a1">🌍 Internet Gateway</text>
+  <text x="95" y="380" class="box-text-sm">Routes public subnet traffic</text>
+
+  <!-- Arrow from Internet → IGW -->
+  <text x="80" y="330" class="box-text-sm">← Internet</text>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <!-- Public Subnets (AZ-1 and AZ-2) -->
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <rect x="80" y="420" width="650" height="210" rx="10" fill="url(#publicGrad)" stroke="#059669" stroke-width="1.5"/>
+  <text x="100" y="448" class="section-title" fill="#047857">Public Subnets  (ALB Layer)</text>
+  <text x="350" y="448" class="box-text-sm">Route Table → Internet Gateway</text>
+
+  <!-- AZ-1 Public -->
+  <rect x="100" y="465" width="290" height="145" rx="8" fill="#ffffff" stroke="#10b981" stroke-width="1" filter="url(#shadow-sm)"/>
+  <text x="115" y="487" class="box-title" fill="#059669">AZ-1: Public Subnet</text>
+  <text x="115" y="505" class="box-text-sm">10.x.1.0/24</text>
+
+  <!-- NAT Gateway inside AZ-1 Public -->
+  <rect x="115" y="520" width="260" height="75" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1"/>
+  <text x="130" y="542" class="box-title" fill="#b45309">🔀 NAT Gateway</text>
+  <text x="130" y="558" class="box-text-sm">Elastic IP attached</text>
+  <text x="130" y="576" class="box-text-sm">Enables outbound for private subnets</text>
+
+  <!-- AZ-2 Public -->
+  <rect x="420" y="465" width="290" height="145" rx="8" fill="#ffffff" stroke="#10b981" stroke-width="1" filter="url(#shadow-sm)"/>
+  <text x="435" y="487" class="box-title" fill="#059669">AZ-2: Public Subnet</text>
+  <text x="435" y="505" class="box-text-sm">10.x.2.0/24</text>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <!-- ALB (spanning Public subnets) -->
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <rect x="780" y="420" width="320" height="210" rx="10" fill="#ffffff" stroke="#6366f1" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="780" y="420" width="320" height="30" rx="10" fill="#6366f1"/>
+  <rect x="780" y="440" width="320" height="10" fill="#6366f1"/>
+  <text x="795" y="443" class="badge">APPLICATION LOAD BALANCER</text>
+  <text x="795" y="473" class="box-text">Managed by Elastic Beanstalk</text>
+  <text x="795" y="493" class="box-text">Scheme: internal / internet facing</text>
+  <text x="795" y="513" class="box-text">Listener: Port 80 (default)</text>
+  <text x="795" y="533" class="box-text">Placed in public subnets (ELBSubnets)</text>
+  <text x="795" y="558" class="box-title" fill="#6366f1">🔒 ALB Security Group</text>
+  <text x="795" y="576" class="box-text-sm">Ingress: TCP/80 from configured CIDRs</text>
+  <text x="795" y="594" class="box-text-sm">Egress: All traffic → 0.0.0.0/0</text>
+  <text x="795" y="612" class="box-text-sm">module.security_groups (ALB SG)</text>
+
+  <!-- Arrow: IGW → Public Subnets -->
+  <line x1="180" y1="395" x2="180" y2="420" class="arrow" stroke="#0369a1"/>
+
+  <!-- Arrow: Public Subnets → ALB -->
+  <line x1="730" y1="525" x2="780" y2="525" class="arrow" stroke="#6366f1"/>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <!-- Private Subnets (AZ-1 and AZ-2) -->
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <rect x="80" y="660" width="650" height="260" rx="10" fill="url(#privateGrad)" stroke="#d97706" stroke-width="1.5"/>
+  <text x="100" y="688" class="section-title" fill="#92400e">Private Subnets  (Application Layer)</text>
+  <text x="400" y="688" class="box-text-sm">Route Table → NAT Gateway</text>
+
+  <!-- AZ-1 Private -->
+  <rect x="100" y="705" width="290" height="195" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1" filter="url(#shadow-sm)"/>
+  <text x="115" y="727" class="box-title" fill="#b45309">AZ-1: Private Subnet</text>
+  <text x="115" y="745" class="box-text-sm">10.x.10.0/24</text>
+
+  <!-- EC2 Instance 1 -->
+  <rect x="115" y="760" width="260" height="125" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1"/>
+  <text x="130" y="782" class="box-title" fill="#c2410c">🖥 EC2 Instance (ASG)</text>
+  <text x="130" y="800" class="box-text-sm">Instance Type: t3.micro/small/medium</text>
+  <text x="130" y="818" class="box-text-sm">IAM Instance Profile attached</text>
+  <text x="130" y="836" class="box-text-sm">EB Web Tier + Worker + S3 policies</text>
+  <text x="130" y="860" class="box-text-sm">🔒 EC2 Security Group</text>
+  <text x="130" y="875" class="box-text-sm">Ingress: TCP/80 from ALB SG only</text>
+
+  <!-- AZ-2 Private -->
+  <rect x="420" y="705" width="290" height="195" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1" filter="url(#shadow-sm)"/>
+  <text x="435" y="727" class="box-title" fill="#b45309">AZ-2: Private Subnet</text>
+  <text x="435" y="745" class="box-text-sm">10.x.20.0/24</text>
+
+  <!-- EC2 Instance 2 -->
+  <rect x="435" y="760" width="260" height="125" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1"/>
+  <text x="450" y="782" class="box-title" fill="#c2410c">🖥 EC2 Instance (ASG)</text>
+  <text x="450" y="800" class="box-text-sm">Instance Type: t3.micro/small/medium</text>
+  <text x="450" y="818" class="box-text-sm">IAM Instance Profile attached</text>
+  <text x="450" y="836" class="box-text-sm">EB Web Tier + Worker + S3 policies</text>
+  <text x="450" y="860" class="box-text-sm">🔒 EC2 Security Group</text>
+  <text x="450" y="875" class="box-text-sm">Ingress: TCP/80 from ALB SG only</text>
+
+  <!-- Arrow: ALB → Private Subnets (instances) -->
+  <path d="M 940 630 L 940 790 L 730 790" class="arrow" stroke="#6366f1"/>
+
+  <!-- Arrow: NAT to Private -->
+  <line x1="245" y1="595" x2="245" y2="660" class="arrow-dashed" stroke="#94a3b8"/>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <!-- Elastic Beanstalk App + Environment (right side within VPC) -->
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <rect x="780" y="660" width="320" height="260" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="780" y="660" width="320" height="30" rx="10" fill="#dc2626"/>
+  <rect x="780" y="680" width="320" height="10" fill="#dc2626"/>
+  <text x="795" y="683" class="badge">ELASTIC BEANSTALK  •  module.elastic_beanstalk</text>
+
+  <text x="795" y="712" class="box-title" fill="#b91c1c">📦 EB Application</text>
+  <text x="795" y="730" class="box-text-sm">Name: &lt;app_name&gt;-&lt;env&gt;</text>
+  <text x="795" y="748" class="box-text-sm">Version lifecycle: max 10 versions retained</text>
+
+  <text x="795" y="773" class="box-title" fill="#b91c1c">🌐 EB Environment</text>
+  <text x="795" y="791" class="box-text-sm">Tier: WebServer  •  Type: LoadBalanced</text>
+  <text x="795" y="809" class="box-text-sm">Solution Stack: Amazon Linux 2023 + Corretto 17</text>
+  <text x="795" y="827" class="box-text-sm">Domain: &lt;cname&gt;.&lt;region&gt;.elasticbeanstalk.com</text>
+
+  <text x="795" y="852" class="box-title" fill="#b91c1c">⚙ Auto Scaling Group</text>
+  <text x="795" y="870" class="box-text-sm">Min: 1–2  •  Max: 2–6  •  Trigger: CPU</text>
+  <text x="795" y="888" class="box-text-sm">Rolling updates • 50% batch deploys</text>
+  <text x="795" y="906" class="box-text-sm">Availability Zones: Any 2</text>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <!-- Environment Variables Box -->
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <rect x="1150" y="660" width="280" height="130" rx="10" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <rect x="1150" y="660" width="280" height="26" rx="10" fill="#8b5cf6"/>
+  <rect x="1150" y="678" width="280" height="8" fill="#8b5cf6"/>
+  <text x="1165" y="680" class="badge">ENVIRONMENT VARIABLES</text>
+  <text x="1165" y="710" class="box-text">eb_environment_variables map</text>
+  <text x="1165" y="730" class="box-text-sm">APP_ENV = "dev" / "qa" / "prod"</text>
+  <text x="1165" y="748" class="box-text-sm">SERVER_PORT = "5000"</text>
+  <text x="1165" y="770" class="box-text-sm">Injected via dynamic setting block</text>
+
+  <!-- Arrow: EB → Env Vars -->
+  <line x1="1100" y1="750" x2="1150" y2="750" class="arrow-dashed" stroke="#8b5cf6"/>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <!-- IAM Roles Box (right side) -->
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <rect x="1150" y="810" width="280" height="115" rx="10" fill="#ffffff" stroke="#0891b2" stroke-width="1.5" filter="url(#shadow-sm)"/>
+  <rect x="1150" y="810" width="280" height="26" rx="10" fill="#0891b2"/>
+  <rect x="1150" y="828" width="280" height="8" fill="#0891b2"/>
+  <text x="1165" y="830" class="badge">IAM ROLES &amp; PROFILES</text>
+  <text x="1165" y="858" class="box-text">EC2 Instance Role + Profile</text>
+  <text x="1165" y="876" class="box-text-sm">WebTier + WorkerTier + S3 ReadOnly</text>
+  <text x="1165" y="896" class="box-text">EB Service Role</text>
+  <text x="1165" y="914" class="box-text-sm">EnhancedHealth + ManagedUpdates</text>
+
+  <!-- Arrow: EB → IAM -->
+  <line x1="1100" y1="870" x2="1150" y2="870" class="arrow-dashed" stroke="#0891b2"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Monitoring Layer (below VPC) -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <rect x="40" y="975" width="700" height="180" rx="10" fill="#ffffff" stroke="#e11d48" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="40" y="975" width="700" height="30" rx="10" fill="#e11d48"/>
+  <rect x="40" y="995" width="700" height="10" fill="#e11d48"/>
+  <text x="55" y="998" class="badge">CLOUDWATCH MONITORING  •  module.cloudwatch</text>
+
+  <!-- Alarms row -->
+  <rect x="60" y="1020" width="160" height="55" rx="6" fill="#fff1f2" stroke="#fda4af" stroke-width="1"/>
+  <text x="75" y="1042" class="box-title" fill="#be123c">📊 CPU Alarm</text>
+  <text x="75" y="1060" class="box-text-sm">&gt; 70–85% (3 periods)</text>
+
+  <rect x="235" y="1020" width="160" height="55" rx="6" fill="#fff1f2" stroke="#fda4af" stroke-width="1"/>
+  <text x="250" y="1042" class="box-title" fill="#be123c">🔴 Unhealthy Hosts</text>
+  <text x="250" y="1060" class="box-text-sm">&gt; 0 (2 periods)</text>
+
+  <rect x="410" y="1020" width="160" height="55" rx="6" fill="#fff1f2" stroke="#fda4af" stroke-width="1"/>
+  <text x="425" y="1042" class="box-title" fill="#be123c">⏱ Latency (p99)</text>
+  <text x="425" y="1060" class="box-text-sm">&gt; 1.0–2.0s</text>
+
+  <rect x="585" y="1020" width="140" height="55" rx="6" fill="#fff1f2" stroke="#fda4af" stroke-width="1"/>
+  <text x="600" y="1042" class="box-title" fill="#be123c">🩺 EB Health</text>
+  <text x="600" y="1060" class="box-text-sm">&gt; Warning (15)</text>
+
+  <!-- SNS -->
+  <rect x="60" y="1090" width="665" height="50" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="75" y="1115" class="box-title" fill="#b45309">📧 SNS Topic</text>
+  <text x="200" y="1115" class="box-text-sm">All alarms → SNS → Email subscription (optional)  •  Create new or use existing topic</text>
+
+  <!-- Arrow: EB → CloudWatch -->
+  <line x1="390" y1="920" x2="390" y2="975" class="arrow" stroke="#e11d48"/>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <!-- CloudWatch Logs Box -->
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <rect x="790" y="975" width="310" height="180" rx="10" fill="#ffffff" stroke="#0ea5e9" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="790" y="975" width="310" height="30" rx="10" fill="#0ea5e9"/>
+  <rect x="790" y="995" width="310" height="10" fill="#0ea5e9"/>
+  <text x="805" y="998" class="badge">CLOUDWATCH LOGS</text>
+  <text x="805" y="1030" class="box-text">StreamLogs: Enabled</text>
+  <text x="805" y="1050" class="box-text">DeleteOnTerminate: false</text>
+  <text x="805" y="1070" class="box-text">Retention: 14–90 days (per env)</text>
+  <text x="805" y="1100" class="box-text-sm">Configured in EB environment settings</text>
+  <text x="805" y="1120" class="box-text-sm">aws:elasticbeanstalk:cloudwatch:logs</text>
+
+  <!-- Arrow: EB → CloudWatch Logs -->
+  <line x1="945" y1="920" x2="945" y2="975" class="arrow" stroke="#0ea5e9"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Module Dependency Flow (bottom) -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <rect x="40" y="1185" width="1420" height="140" rx="10" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="60" y="1215" class="section-title">Module Dependency Flow  (root main.tf orchestration)</text>
+
+  <!-- Module boxes -->
+  <rect x="80" y="1235" width="130" height="65" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="107" y="1260" class="box-title" fill="#dc2626">OIDC</text>
+  <text x="94" y="1280" class="box-text-sm">IAM provider</text>
+  <text x="96" y="1292" class="box-text-sm">+ deploy role</text>
+
+  <rect x="300" y="1235" width="130" height="65" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="340" y="1260" class="box-title" fill="#2563eb">VPC</text>
+  <text x="315" y="1280" class="box-text-sm">VPC + subnets</text>
+  <text x="308" y="1292" class="box-text-sm">IGW + NAT + RT</text>
+
+  <rect x="520" y="1235" width="160" height="65" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <text x="536" y="1260" class="box-title" fill="#059669">Security Groups</text>
+  <text x="541" y="1280" class="box-text-sm">ALB SG + EC2 SG</text>
+
+  <rect x="770" y="1235" width="200" height="65" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="793" y="1260" class="box-title" fill="#ea580c">Elastic Beanstalk</text>
+  <text x="788" y="1280" class="box-text-sm">App + Version + Env</text>
+  <text x="784" y="1292" class="box-text-sm">ALB + ASG + Domain</text>
+
+  <rect x="1060" y="1235" width="160" height="65" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="1.5"/>
+  <text x="1091" y="1260" class="box-title" fill="#e11d48">CloudWatch</text>
+  <text x="1078" y="1280" class="box-text-sm">Alarms + SNS</text>
+  <text x="1086" y="1292" class="box-text-sm">+ CW Logs</text>
+
+  <!-- Dependency arrows -->
+  <line x1="430" y1="1267" x2="520" y2="1267" class="arrow" stroke="#475569"/>
+  <line x1="680" y1="1267" x2="770" y2="1267" class="arrow" stroke="#475569"/>
+  <line x1="970" y1="1267" x2="1060" y2="1267" class="arrow" stroke="#475569"/>
+  <path d="M 365 1300 L 365 1318 L 870 1318 L 870 1300" class="arrow" stroke="#94a3b8"/>
+
+</svg>

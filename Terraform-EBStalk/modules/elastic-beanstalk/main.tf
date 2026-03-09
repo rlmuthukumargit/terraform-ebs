@@ -144,12 +144,19 @@ resource "aws_elastic_beanstalk_application_version" "this" {
 # -----------------------------------------------------------------------------
 # Elastic Beanstalk Environment — LoadBalanced, ALB, Auto Scaling
 # -----------------------------------------------------------------------------
+locals {
+  eb_environment_name        = trimspace(var.eb_environment_name) != "" ? trimspace(var.eb_environment_name) : "${var.app_name}-${var.environment}-env"
+  eb_environment_description = trimspace(var.eb_environment_description) != "" ? trimspace(var.eb_environment_description) : "${var.app_name} environment for ${var.environment}"
+  eb_cname_prefix            = trimspace(var.eb_environment_cname_prefix)
+}
 resource "aws_elastic_beanstalk_environment" "this" {
-  name                = "${var.app_name}-${var.environment}-env"
+  name                = local.eb_environment_name
   application         = aws_elastic_beanstalk_application.this.name
   solution_stack_name = var.solution_stack_name
   version_label       = aws_elastic_beanstalk_application_version.this.name
   tier                = "WebServer"
+  description         = local.eb_environment_description
+  cname_prefix        = local.eb_cname_prefix != "" ? local.eb_cname_prefix : null
 
   lifecycle {
     prevent_destroy = true
@@ -179,7 +186,7 @@ resource "aws_elastic_beanstalk_environment" "this" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "ELBScheme"
-    value     = "internet facing"
+    value     = var.alb_scheme
   }
 
   # ---------------------------------------------------------------------------
@@ -201,6 +208,15 @@ resource "aws_elastic_beanstalk_environment" "this" {
     namespace = "aws:elasticbeanstalk:environment"
     name      = "ServiceRole"
     value     = aws_iam_role.eb_service_role.arn
+  }
+  # Optional application environment variables
+  dynamic "setting" {
+    for_each = var.eb_environment_variables
+    content {
+      namespace = "aws:elasticbeanstalk:application:environment"
+      name      = setting.key
+      value     = setting.value
+    }
   }
 
   # Optional custom ALB security groups
@@ -400,3 +416,4 @@ resource "aws_elastic_beanstalk_environment" "this" {
     ManagedBy   = "terraform"
   }
 }
+

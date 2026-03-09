@@ -48,12 +48,17 @@ module "security_groups" {
 module "elastic_beanstalk" {
   source = "./modules/elastic-beanstalk"
 
-  app_name            = var.app_name
-  environment         = var.environment
-  solution_stack_name = var.solution_stack_name
-  instance_type       = var.instance_type
-  min_instances       = var.min_instances
-  max_instances       = var.max_instances
+  app_name                    = var.app_name
+  environment                 = var.environment
+  eb_environment_name         = var.eb_environment_name
+  eb_environment_cname_prefix = var.eb_environment_cname_prefix
+  eb_environment_description  = var.eb_environment_description
+  alb_scheme                  = var.alb_scheme
+  eb_environment_variables    = var.eb_environment_variables
+  solution_stack_name         = var.solution_stack_name
+  instance_type               = var.instance_type
+  min_instances               = var.min_instances
+  max_instances               = var.max_instances
 
   # VPC wiring
   vpc_id             = module.vpc.vpc_id

@@ -43,3 +43,15 @@ alarm_email       = ""  # <-- Add email for notifications
 alb_ingress_cidrs = ["0.0.0.0/0"]
 alb_listener_port = 80
 app_port          = 80
+
+# --- Elastic Beanstalk Environment Info ---
+eb_environment_name        = "my-app-prod-env"
+eb_environment_cname_prefix = "myapp-prod"      # Domain: myapp-prod.<region>.elasticbeanstalk.com
+eb_environment_description = "Production Elastic Beanstalk environment"
+
+# --- Internal ALB + EB App Environment Variables ---
+alb_scheme = "internal"
+eb_environment_variables = {
+  APP_ENV     = "prod"
+  SERVER_PORT = "5000"
+}

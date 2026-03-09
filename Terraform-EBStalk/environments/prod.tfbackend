@@ -1,0 +1,4 @@
+resource_group_name  = "<TF_STATE_RESOURCE_GROUP>"    # <-- Replace with your Azure resource group
+storage_account_name = "<TF_STATE_STORAGE_ACCOUNT>"   # <-- Replace with your storage account
+container_name       = "<TF_STATE_CONTAINER>"          # <-- Replace with your blob container
+key                  = "ebs/prod/terraform.tfstate"

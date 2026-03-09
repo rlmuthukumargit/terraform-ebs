@@ -92,3 +92,38 @@ variable "log_retention_days" {
   type        = number
   default     = 30
 }
+
+variable "eb_environment_name" {
+  description = "Optional explicit Elastic Beanstalk environment name"
+  type        = string
+  default     = ""
+}
+
+variable "eb_environment_cname_prefix" {
+  description = "Optional CNAME prefix for Elastic Beanstalk environment URL"
+  type        = string
+  default     = ""
+}
+
+variable "eb_environment_description" {
+  description = "Optional description for Elastic Beanstalk environment"
+  type        = string
+  default     = ""
+}
+
+variable "alb_scheme" {
+  description = "ALB scheme for Elastic Beanstalk (internal or internet facing)"
+  type        = string
+  default     = "internet facing"
+
+  validation {
+    condition     = contains(["internal", "internet facing"], var.alb_scheme)
+    error_message = "alb_scheme must be either 'internal' or 'internet facing'."
+  }
+}
+
+variable "eb_environment_variables" {
+  description = "Map of environment variables to inject into Elastic Beanstalk application environment"
+  type        = map(string)
+  default     = {}
+}
