@@ -84,166 +84,152 @@ Shared Terraform modules:
 
 
 
+
 ## Step-by-Step Deployment Guide
 
-### Prerequisites
+Deployment is automated via **Azure DevOps Pipeline**. Simply push your code and the pipeline handles everything.
 
-Before deploying, ensure the following are in place:
+### Step 1: Configure Azure DevOps Variables
+
+Set the following pipeline variables in Azure DevOps (Pipelines → Library or pipeline variables):
+
+| Variable | Type | Description |
+|---|---|---|
+| `TF_STATE_RESOURCE_GROUP` | Plain | Azure resource group for Terraform state storage |
+| `TF_STATE_STORAGE_ACCOUNT` | Plain | Azure storage account name |
+| `TF_STATE_CONTAINER` | Plain | Azure blob container name |
+| `TF_STATE_ACCESS_KEY` | Secret | Azure storage account access key |
+
+### Step 2: Configure AWS OIDC Service Connections
+
+Create AWS service connections in Azure DevOps (Project Settings → Service Connections):
+
+| Service Connection | Environment | Used By |
+|---|---|---|
+| `aws-dev-oidc` | Dev | Dev stage |
+| `aws-qa-oidc` | QA | QA stage |
+| `aws-prod-oidc` | Prod | Prod stage |
+
+### Step 3: Update Environment Configuration
+
+Edit the `environments/*.tfvars` files with your actual values:
 
 ```bash
-# 1. Install Terraform (>= 1.5.0)
-terraform --version
+# environments/dev.tfvars
+aws_account_id = "111111111111"    # Your dev AWS account
+app_s3_bucket  = "my-app-artifacts-dev"
+```
 
-# 2. Verify AWS CLI is configured
+### Step 4: Push Code and Pipeline Runs Automatically
+
+```bash
+git add .
+git commit -m "Deploy Elastic Beanstalk infrastructure"
+git push origin main
+```
+
+The pipeline automatically executes for each environment:
+
+```text
+┌────────────────────────────────────────────────────────────────────────────┐
+│  Build Stage                                                              │
+│    mvn clean package → create ZIP bundle → publish artifact              │
+├────────────────────────────────────────────────────────────────────────────┤
+│  Dev Stage (on develop or main branch)                                   │
+│    Upload bundle to S3 → terraform init → validate → plan → apply       │
+│    -var-file=environments/dev.tfvars                                     │
+├────────────────────────────────────────────────────────────────────────────┤
+│  QA Stage (on main or release/* branch, after Dev succeeds)              │
+│    Upload bundle to S3 → terraform init → validate → plan → apply       │
+│    -var-file=environments/qa.tfvars                                      │
+├────────────────────────────────────────────────────────────────────────────┤
+│  Prod Stage (on main branch only, after QA succeeds)                     │
+│    Upload bundle to S3 → terraform init → validate → plan → apply       │
+│    -var-file=environments/prod.tfvars                                    │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+> The pipeline template (`templates/terraform-job.yml`) handles `terraform init` with Azure Blob backend, `validate`, `plan`, and `apply` — **no manual CLI commands needed.**
+
+---
+
+### Pipeline Stage Triggers
+
+| Stage | Branch Trigger | Depends On |
+|---|---|---|
+| Build | `main`, `develop`, `release/*` | — |
+| Dev | `develop`, `main` | Build |
+| QA | `main`, `release/*` | Dev |
+| Prod | `main` only | QA |
+
+---
+
+<details>
+<summary><b>Optional: Local / Manual Deployment (for testing)</b></summary>
+
+If you need to run Terraform locally (e.g., for debugging), use the `.tfbackend` files:
+
+#### Prerequisites
+
+```bash
+terraform --version        # >= 1.5.0
 aws sts get-caller-identity
-
-# 3. Create an S3 bucket for application artifacts (one per environment)
-aws s3 mb s3://my-app-artifacts-dev --region us-east-1
-aws s3 mb s3://my-app-artifacts-qa --region us-east-1
-aws s3 mb s3://my-app-artifacts-prod --region us-east-1
-
-# 4. Upload your application JAR/WAR to S3
-aws s3 cp target/my-app-v1.jar s3://my-app-artifacts-dev/releases/my-app-v1.jar
 ```
 
----
-
-### Step 1: Deploy to DEV Environment
+#### Deploy to DEV
 
 ```bash
-# 1.1 Initialize Terraform with DEV backend config
 terraform init -reconfigure -backend-config=environments/dev.tfbackend
-
-# 1.2 Validate the configuration
 terraform validate
-
-# 1.3 Preview the changes for DEV
 terraform plan -var-file=environments/dev.tfvars
-
-# 1.4 Apply the changes to DEV
 terraform apply -var-file=environments/dev.tfvars
-
-# 1.5 Verify the deployment outputs
 terraform output
 ```
 
-> After `apply`, note the output values:
-> - `eb_domain_name` → e.g. `myapp-dev.us-east-1.elasticbeanstalk.com`
-> - `eb_endpoint_url` → the environment endpoint URL
-> - `vpc_id` → the created VPC ID
-
----
-
-### Step 2: Deploy to QA Environment
+#### Deploy to QA
 
 ```bash
-# 2.1 Initialize Terraform with QA backend config
 terraform init -reconfigure -backend-config=environments/qa.tfbackend
-
-# 2.2 Validate the configuration
 terraform validate
-
-# 2.3 Preview the changes for QA
 terraform plan -var-file=environments/qa.tfvars
-
-# 2.4 Apply the changes to QA
 terraform apply -var-file=environments/qa.tfvars
-
-# 2.5 Verify the deployment outputs
 terraform output
 ```
 
-> QA uses `t3.small` instances with min 2 / max 4 ASG and stricter CloudWatch thresholds.
-
----
-
-### Step 3: Deploy to PROD Environment
+#### Deploy to PROD
 
 ```bash
-# 3.1 Initialize Terraform with PROD backend config
 terraform init -reconfigure -backend-config=environments/prod.tfbackend
-
-# 3.2 Validate the configuration
 terraform validate
-
-# 3.3 Preview the changes for PROD (always review carefully!)
 terraform plan -var-file=environments/prod.tfvars
-
-# 3.4 Apply the changes to PROD
 terraform apply -var-file=environments/prod.tfvars
-
-# 3.5 Verify the deployment outputs
 terraform output
 ```
 
-> ⚠️ **PROD** uses `t3.medium` instances with min 2 / max 6 ASG, 90-day log retention, and tighter alarm thresholds (CPU 70%, latency 1.0s).
-
----
-
-### Destroy an Environment
-
-To tear down an environment (e.g. dev):
+#### Destroy an Environment
 
 ```bash
-# Initialize with the target environment's backend config
 terraform init -reconfigure -backend-config=environments/dev.tfbackend
-
-# Destroy all resources for DEV
 terraform destroy -var-file=environments/dev.tfvars
-
-# For QA
-terraform init -reconfigure -backend-config=environments/qa.tfbackend
-terraform destroy -var-file=environments/qa.tfvars
-
-# For PROD (use with extreme caution!)
-terraform init -reconfigure -backend-config=environments/prod.tfbackend
-terraform destroy -var-file=environments/prod.tfvars
 ```
 
 > ⚠️ Resources with `prevent_destroy = true` will block destruction. Remove the lifecycle block first if you intend to destroy.
 
-
----
-
-### Useful Commands
+#### Useful Commands
 
 ```bash
-# Format all Terraform files
-terraform fmt -recursive
-
-# Validate syntax without applying
-terraform validate
-
-# Show current state
-terraform show
-
-# List all resources in state
-terraform state list
-
-# View a specific output
-terraform output eb_domain_name
-
-# Import an existing resource
-terraform import -var-file=environments/dev.tfvars <resource_address> <resource_id>
+terraform fmt -recursive              # Format all files
+terraform validate                     # Validate syntax
+terraform show                         # Show current state
+terraform state list                   # List all resources
+terraform output eb_domain_name        # View specific output
 ```
 
-## CI/CD Pipeline (Azure DevOps)
+</details>
 
-The `azure-pipelines.yml` automates the above steps:
 
-1. **Build Stage** — Build sample app (Maven) → create EB bundle ZIP
-2. **Dev Stage** — Upload artifact to S3 → `terraform init` → `terraform plan` → `terraform apply -var-file=environments/dev.tfvars`
-3. **QA Stage** — Upload artifact to S3 → `terraform init` → `terraform plan` → `terraform apply -var-file=environments/qa.tfvars`
-4. **Prod Stage** — Upload artifact to S3 → `terraform init` → `terraform plan` → `terraform apply -var-file=environments/prod.tfvars`
 
-### Required Azure DevOps Variables
 
-| Variable | Type | Description |
-|---|---|---|
-| `TF_STATE_RESOURCE_GROUP` | Plain | Azure resource group for Terraform state |
-| `TF_STATE_STORAGE_ACCOUNT` | Plain | Azure storage account name |
-| `TF_STATE_CONTAINER` | Plain | Azure blob container name |
-| `TF_STATE_ACCESS_KEY` | Secret | Azure storage access key |
 
 ## Environment Configuration Files
 
