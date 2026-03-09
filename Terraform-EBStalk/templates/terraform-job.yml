@@ -60,7 +60,7 @@ jobs:
                   echo "##vso[task.setvariable variable=APP_S3_KEY]${APP_S3_KEY}"
 
             - task: AWSShellScript@1
-              displayName: "Terraform init/validate/plan/apply"
+              displayName: "Terraform Init"
               inputs:
                 awsCredentials: "${{ parameters.awsServiceConnection }}"
                 regionName: "${{ parameters.awsRegion }}"
@@ -68,7 +68,6 @@ jobs:
                 inlineScript: |
                   set -euo pipefail
                   cd "${{ parameters.workingDirectory }}"
-
                   terraform init -reconfigure \
                     -backend-config="resource_group_name=$(TF_STATE_RESOURCE_GROUP)" \
                     -backend-config="storage_account_name=$(TF_STATE_STORAGE_ACCOUNT)" \
@@ -76,8 +75,26 @@ jobs:
                     -backend-config="key=ebs/${{ parameters.environment }}/terraform.tfstate" \
                     -backend-config="access_key=$(TF_STATE_ACCESS_KEY)"
 
+            - task: AWSShellScript@1
+              displayName: "Terraform Validate"
+              inputs:
+                awsCredentials: "${{ parameters.awsServiceConnection }}"
+                regionName: "${{ parameters.awsRegion }}"
+                scriptType: "inline"
+                inlineScript: |
+                  set -euo pipefail
+                  cd "${{ parameters.workingDirectory }}"
                   terraform validate
 
+            - task: AWSShellScript@1
+              displayName: "Terraform Plan"
+              inputs:
+                awsCredentials: "${{ parameters.awsServiceConnection }}"
+                regionName: "${{ parameters.awsRegion }}"
+                scriptType: "inline"
+                inlineScript: |
+                  set -euo pipefail
+                  cd "${{ parameters.workingDirectory }}"
                   terraform plan \
                     -var-file="${{ parameters.tfVarsFile }}" \
                     -var="app_s3_bucket=${{ parameters.appS3Bucket }}" \
@@ -85,4 +102,13 @@ jobs:
                     -var="app_version_label=$(Build.BuildId)" \
                     -out=tfplan
 
+            - task: AWSShellScript@1
+              displayName: "Terraform Apply"
+              inputs:
+                awsCredentials: "${{ parameters.awsServiceConnection }}"
+                regionName: "${{ parameters.awsRegion }}"
+                scriptType: "inline"
+                inlineScript: |
+                  set -euo pipefail
+                  cd "${{ parameters.workingDirectory }}"
                   terraform apply -auto-approve tfplan

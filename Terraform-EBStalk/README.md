@@ -6,7 +6,7 @@ Reusable Terraform modules for deploying AWS Elastic Beanstalk across `dev`, `qa
 
 ![AWS Architecture](docs/architecture.png)
 
-> 💡 **Editable version:** [architecture.drawio](docs/architecture.drawio) — open in [draw.io](https://app.diagrams.net/) or VS Code draw.io extension.
+
 
 
 ```mermaid
