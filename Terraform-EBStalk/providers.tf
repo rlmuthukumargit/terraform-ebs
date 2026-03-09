@@ -19,19 +19,16 @@ terraform {
   }
 
   # ---------------------------------------------------------------------------
-  # Remote Backend (S3) — uncomment and configure for shared state
+  # Remote Backend (Azure Blob Storage)
+  #
+  # Keep this block partial and pass backend settings during `terraform init`
+  # from the pipeline (resource group, storage account, container, key).
   # ---------------------------------------------------------------------------
-  # backend "s3" {
-  #   bucket         = "my-terraform-state-bucket"
-  #   key            = "ebs/${var.environment}/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   encrypt        = true
-  #   dynamodb_table = "terraform-state-lock"
-  # }
+  backend "azurerm" {}
 }
 
 # -----------------------------------------------------------------------------
-# AWS Provider — OIDC-based authentication (no access key / secret key)
+# AWS Provider - OIDC-based authentication (no access key / secret key)
 #
 # How it works:
 #   1. Your CI/CD pipeline (e.g., GitHub Actions) generates a web identity token
@@ -40,8 +37,8 @@ terraform {
 #   4. STS returns temporary credentials scoped to the target account
 #
 # Required environment variables (set by CI/CD):
-#   AWS_WEB_IDENTITY_TOKEN_FILE  — path to the token file
-#   AWS_ROLE_ARN                 — ARN of the role to assume (or set below)
+#   AWS_WEB_IDENTITY_TOKEN_FILE  - path to the token file
+#   AWS_ROLE_ARN                 - ARN of the role to assume (or set below)
 # -----------------------------------------------------------------------------
 provider "aws" {
   region = var.aws_region

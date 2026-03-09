@@ -1,15 +1,11 @@
 ################################################################################
-# Azure DevOps Multi-Stage Pipeline — Terraform EBS Deployment
+# Azure DevOps Multi-Stage Pipeline - Terraform EBS Deployment
 #
-# Stages: Dev → QA → Prod
-# Auth:   OIDC (Workload Identity Federation) via AWS service connection
-#
-# Prerequisites:
-#   1. Install "Terraform" extension from Azure DevOps Marketplace
-#   2. Create an AWS service connection (Workload Identity Federation)
-#      in Project Settings → Service connections for each environment
-#   3. Configure the S3 backend bucket and DynamoDB lock table in AWS
-#   4. Update variable group "terraform-common" with shared settings
+# Purpose:
+# - Build sample application bundle once
+# - Upload bundle per environment to S3
+# - Deploy reusable Terraform modules to AWS Elastic Beanstalk
+# - Keep Terraform state in Azure Blob Storage backend
 ################################################################################
 
 trigger:
@@ -25,34 +21,66 @@ pr:
       - main
       - develop
 
-################################################################################
-# Variables
-################################################################################
 variables:
   - name: terraformVersion
     value: "1.9.0"
   - name: workingDirectory
     value: "$(System.DefaultWorkingDirectory)/Terraform-EBStalk"
+  - name: awsRegion
+    value: "us-east-1"
 
-################################################################################
-# Stages
-################################################################################
 stages:
-  # ===========================================================================
-  # DEV Stage — auto-triggered on develop branch
-  # ===========================================================================
+  - stage: Build
+    displayName: "Build Sample App"
+    jobs:
+      - job: Build_Sample_App
+        displayName: "Build Java sample app bundle"
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - checkout: self
+            fetchDepth: 1
+
+          - script: |
+              set -euo pipefail
+              cd "$(System.DefaultWorkingDirectory)/Terraform-EBStalk/sample-app"
+              mvn -B -DskipTests clean package
+            displayName: "Build sample app jar"
+
+          - script: |
+              set -euo pipefail
+              mkdir -p "$(Build.ArtifactStagingDirectory)/bundle"
+              cp "$(System.DefaultWorkingDirectory)/Terraform-EBStalk/sample-app/target/"*.jar "$(Build.ArtifactStagingDirectory)/bundle/app.jar"
+              cp "$(System.DefaultWorkingDirectory)/Terraform-EBStalk/sample-app/Procfile" "$(Build.ArtifactStagingDirectory)/bundle/Procfile"
+              cd "$(Build.ArtifactStagingDirectory)/bundle"
+              zip -r sample-app.zip app.jar Procfile
+            displayName: "Create Elastic Beanstalk source bundle"
+
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish app bundle artifact"
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/bundle/sample-app.zip"
+              artifact: "eb-app-bundle"
+              publishLocation: "pipeline"
+
   - stage: Dev
     displayName: "Deploy to Dev"
+    dependsOn: Build
     condition: |
-      or(
-        eq(variables['Build.SourceBranch'], 'refs/heads/develop'),
-        eq(variables['Build.SourceBranch'], 'refs/heads/main')
+      and(
+        succeeded(),
+        or(
+          eq(variables['Build.SourceBranch'], 'refs/heads/develop'),
+          eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        )
       )
     variables:
       - name: environment
         value: "dev"
       - name: awsServiceConnection
-        value: "aws-dev-oidc"         # <-- Replace with your service connection name
+        value: "aws-dev-oidc"
+      - name: appS3Bucket
+        value: "my-app-artifacts-dev"
       - name: tfVarsFile
         value: "environments/dev.tfvars"
     jobs:
@@ -60,13 +88,12 @@ stages:
         parameters:
           environment: ${{ variables.environment }}
           awsServiceConnection: $(awsServiceConnection)
+          awsRegion: $(awsRegion)
+          appS3Bucket: $(appS3Bucket)
           tfVarsFile: $(tfVarsFile)
           terraformVersion: $(terraformVersion)
           workingDirectory: $(workingDirectory)
 
-  # ===========================================================================
-  # QA Stage — requires Dev success + manual approval
-  # ===========================================================================
   - stage: QA
     displayName: "Deploy to QA"
     dependsOn: Dev
@@ -82,7 +109,9 @@ stages:
       - name: environment
         value: "qa"
       - name: awsServiceConnection
-        value: "aws-qa-oidc"          # <-- Replace with your service connection name
+        value: "aws-qa-oidc"
+      - name: appS3Bucket
+        value: "my-app-artifacts-qa"
       - name: tfVarsFile
         value: "environments/qa.tfvars"
     jobs:
@@ -90,13 +119,12 @@ stages:
         parameters:
           environment: ${{ variables.environment }}
           awsServiceConnection: $(awsServiceConnection)
+          awsRegion: $(awsRegion)
+          appS3Bucket: $(appS3Bucket)
           tfVarsFile: $(tfVarsFile)
           terraformVersion: $(terraformVersion)
           workingDirectory: $(workingDirectory)
 
-  # ===========================================================================
-  # PROD Stage — requires QA success + manual approval
-  # ===========================================================================
   - stage: Prod
     displayName: "Deploy to Production"
     dependsOn: QA
@@ -109,7 +137,9 @@ stages:
       - name: environment
         value: "prod"
       - name: awsServiceConnection
-        value: "aws-prod-oidc"        # <-- Replace with your service connection name
+        value: "aws-prod-oidc"
+      - name: appS3Bucket
+        value: "my-app-artifacts-prod"
       - name: tfVarsFile
         value: "environments/prod.tfvars"
     jobs:
@@ -117,6 +147,8 @@ stages:
         parameters:
           environment: ${{ variables.environment }}
           awsServiceConnection: $(awsServiceConnection)
+          awsRegion: $(awsRegion)
+          appS3Bucket: $(appS3Bucket)
           tfVarsFile: $(tfVarsFile)
           terraformVersion: $(terraformVersion)
           workingDirectory: $(workingDirectory)

@@ -161,3 +161,56 @@ Terraform-EBStalk/
     ├── elastic-beanstalk/         # EB app, version, environment
     └── cloudwatch/                # Alarms + SNS notifications
 ```
+
+---
+
+## Terraform State Backend (Azure Blob)
+
+This project now uses an `azurerm` backend for Terraform state while still deploying AWS resources.
+
+Configure these Azure DevOps pipeline variables (or variable group values):
+
+- `TF_STATE_RESOURCE_GROUP` - Resource group that hosts the storage account
+- `TF_STATE_STORAGE_ACCOUNT` - Storage account name
+- `TF_STATE_CONTAINER` - Blob container name for state files
+- `azureBackendServiceConnection` (pipeline variable in `azure-pipelines.yml`) - Azure RM service connection name
+
+State key format is environment-specific:
+
+- `ebs/dev/terraform.tfstate`
+- `ebs/qa/terraform.tfstate`
+- `ebs/prod/terraform.tfstate`
+
+---
+
+## Azure Blob Backend + AWS Provider (Final Setup)
+
+This repo deploys AWS infrastructure (Elastic Beanstalk, VPC, OIDC, CloudWatch) using the AWS provider.
+Only Terraform state is stored in Azure Blob Storage.
+
+### Required Azure DevOps service connections
+
+- `aws-dev-oidc`
+- `aws-qa-oidc`
+- `aws-prod-oidc`
+
+### Required Azure DevOps pipeline variables (mark secret where noted)
+
+- `TF_STATE_RESOURCE_GROUP`
+- `TF_STATE_STORAGE_ACCOUNT`
+- `TF_STATE_CONTAINER`
+- `TF_STATE_ACCESS_KEY` (secret)
+
+### Pipeline behavior
+
+1. Builds `sample-app` Spring Boot jar.
+2. Creates an Elastic Beanstalk bundle (`app.jar` + `Procfile`).
+3. Uploads bundle to env S3 bucket as `releases/sample-app-<BuildId>.zip`.
+4. Runs `terraform init` with Azure Blob backend config.
+5. Runs `terraform plan/apply` with AWS OIDC credentials.
+
+### Sample app location
+
+- `sample-app/pom.xml`
+- `sample-app/src/main/java/com/example/demo/SampleApplication.java`
+- `sample-app/Procfile`

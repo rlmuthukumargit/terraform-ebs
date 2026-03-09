@@ -2,13 +2,21 @@
 # Reusable Terraform Job Template
 #
 # Called by azure-pipelines.yml for each environment stage.
-# Performs: install → init → validate → plan → apply
+# Performs:
+#   1) Download sample app bundle
+#   2) Upload bundle to environment S3 bucket
+#   3) Terraform init (Azure Blob backend)
+#   4) Terraform validate/plan/apply (AWS provider)
 ################################################################################
 
 parameters:
   - name: environment
     type: string
   - name: awsServiceConnection
+    type: string
+  - name: awsRegion
+    type: string
+  - name: appS3Bucket
     type: string
   - name: tfVarsFile
     type: string
@@ -20,71 +28,61 @@ parameters:
 
 jobs:
   - deployment: Terraform_${{ parameters.environment }}
-    displayName: "Terraform — ${{ parameters.environment }}"
-    environment: "${{ parameters.environment }}"        # Enables approval gates in Azure DevOps Environments
+    displayName: "Terraform - ${{ parameters.environment }}"
+    environment: "${{ parameters.environment }}"
     pool:
       vmImage: "ubuntu-latest"
     strategy:
       runOnce:
         deploy:
           steps:
-            # ---------------------------------------------------------------
-            # 1. Checkout source code
-            # ---------------------------------------------------------------
             - checkout: self
               fetchDepth: 1
 
-            # ---------------------------------------------------------------
-            # 2. Install Terraform
-            # ---------------------------------------------------------------
+            - download: current
+              artifact: eb-app-bundle
+
             - task: TerraformInstaller@1
               displayName: "Install Terraform ${{ parameters.terraformVersion }}"
               inputs:
                 terraformVersion: "${{ parameters.terraformVersion }}"
 
-            # ---------------------------------------------------------------
-            # 3. Terraform Init
-            # ---------------------------------------------------------------
-            - task: TerraformTaskV4@4
-              displayName: "Terraform Init"
+            - task: AWSShellScript@1
+              displayName: "Upload sample app bundle to S3"
               inputs:
-                provider: "aws"
-                command: "init"
-                workingDirectory: "${{ parameters.workingDirectory }}"
-                backendServiceAWS: "${{ parameters.awsServiceConnection }}"
-                backendAWSBucketName: "$(TF_STATE_BUCKET)"       # Set via variable group or pipeline variables
-                backendAWSKey: "ebs/${{ parameters.environment }}/terraform.tfstate"
+                awsCredentials: "${{ parameters.awsServiceConnection }}"
+                regionName: "${{ parameters.awsRegion }}"
+                scriptType: "inline"
+                inlineScript: |
+                  set -euo pipefail
+                  APP_S3_KEY="releases/sample-app-${BUILD_BUILDID}.zip"
+                  aws s3 cp "$(Pipeline.Workspace)/eb-app-bundle/sample-app.zip" "s3://${{ parameters.appS3Bucket }}/${APP_S3_KEY}"
+                  echo "##vso[task.setvariable variable=APP_S3_KEY]${APP_S3_KEY}"
 
-            # ---------------------------------------------------------------
-            # 4. Terraform Validate
-            # ---------------------------------------------------------------
-            - task: TerraformTaskV4@4
-              displayName: "Terraform Validate"
+            - task: AWSShellScript@1
+              displayName: "Terraform init/validate/plan/apply"
               inputs:
-                provider: "aws"
-                command: "validate"
-                workingDirectory: "${{ parameters.workingDirectory }}"
+                awsCredentials: "${{ parameters.awsServiceConnection }}"
+                regionName: "${{ parameters.awsRegion }}"
+                scriptType: "inline"
+                inlineScript: |
+                  set -euo pipefail
+                  cd "${{ parameters.workingDirectory }}"
 
-            # ---------------------------------------------------------------
-            # 5. Terraform Plan
-            # ---------------------------------------------------------------
-            - task: TerraformTaskV4@4
-              displayName: "Terraform Plan"
-              inputs:
-                provider: "aws"
-                command: "plan"
-                workingDirectory: "${{ parameters.workingDirectory }}"
-                environmentServiceNameAWS: "${{ parameters.awsServiceConnection }}"
-                commandOptions: "-var-file=${{ parameters.tfVarsFile }} -out=tfplan"
+                  terraform init -reconfigure \
+                    -backend-config="resource_group_name=$(TF_STATE_RESOURCE_GROUP)" \
+                    -backend-config="storage_account_name=$(TF_STATE_STORAGE_ACCOUNT)" \
+                    -backend-config="container_name=$(TF_STATE_CONTAINER)" \
+                    -backend-config="key=ebs/${{ parameters.environment }}/terraform.tfstate" \
+                    -backend-config="access_key=$(TF_STATE_ACCESS_KEY)"
 
-            # ---------------------------------------------------------------
-            # 6. Terraform Apply (auto-approve from saved plan)
-            # ---------------------------------------------------------------
-            - task: TerraformTaskV4@4
-              displayName: "Terraform Apply"
-              inputs:
-                provider: "aws"
-                command: "apply"
-                workingDirectory: "${{ parameters.workingDirectory }}"
-                environmentServiceNameAWS: "${{ parameters.awsServiceConnection }}"
-                commandOptions: "tfplan"
+                  terraform validate
+
+                  terraform plan \
+                    -var-file="${{ parameters.tfVarsFile }}" \
+                    -var="app_s3_bucket=${{ parameters.appS3Bucket }}" \
+                    -var="app_s3_key=$(APP_S3_KEY)" \
+                    -var="app_version_label=$(Build.BuildId)" \
+                    -out=tfplan
+
+                  terraform apply -auto-approve tfplan
