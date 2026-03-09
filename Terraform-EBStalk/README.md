@@ -214,3 +214,17 @@ Only Terraform state is stored in Azure Blob Storage.
 - `sample-app/pom.xml`
 - `sample-app/src/main/java/com/example/demo/SampleApplication.java`
 - `sample-app/Procfile`
+
+## Custom Security Groups
+
+This repo now creates and uses explicit security groups for Elastic Beanstalk:
+
+- Module path: `modules/security-groups`
+- ALB SG: ingress from `alb_ingress_cidrs` on `alb_listener_port`
+- EC2 SG: ingress only from ALB SG on `app_port`
+
+Configure per environment in:
+
+- `environments/dev.tfvars`
+- `environments/qa.tfvars`
+- `environments/prod.tfvars`

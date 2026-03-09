@@ -1,5 +1,5 @@
 ################################################################################
-# Root Module — Orchestrates all sub-modules
+# Root Module - Orchestrates all sub-modules
 # Usage: terraform plan -var-file="environments/dev.tfvars"
 ################################################################################
 
@@ -29,7 +29,21 @@ module "vpc" {
 }
 
 # -----------------------------------------------------------------------------
-# 3. Elastic Beanstalk (App + Version from S3 + Environment with ALB & ASG)
+# 3. Security Groups (custom ALB + EC2 SGs for Elastic Beanstalk)
+# -----------------------------------------------------------------------------
+module "security_groups" {
+  source = "./modules/security-groups"
+
+  app_name          = var.app_name
+  environment       = var.environment
+  vpc_id            = module.vpc.vpc_id
+  alb_ingress_cidrs = var.alb_ingress_cidrs
+  alb_listener_port = var.alb_listener_port
+  app_port          = var.app_port
+}
+
+# -----------------------------------------------------------------------------
+# 4. Elastic Beanstalk (App + Version from S3 + Environment with ALB & ASG)
 # -----------------------------------------------------------------------------
 module "elastic_beanstalk" {
   source = "./modules/elastic-beanstalk"
@@ -46,6 +60,10 @@ module "elastic_beanstalk" {
   public_subnet_ids  = module.vpc.public_subnet_ids
   private_subnet_ids = module.vpc.private_subnet_ids
 
+  # Custom security groups
+  alb_security_group_ids      = [module.security_groups.alb_security_group_id]
+  instance_security_group_ids = [module.security_groups.ec2_security_group_id]
+
   # S3 app source
   app_s3_bucket     = var.app_s3_bucket
   app_s3_key        = var.app_s3_key
@@ -56,16 +74,16 @@ module "elastic_beanstalk" {
 }
 
 # -----------------------------------------------------------------------------
-# 4. CloudWatch Alarms (CPU, Unhealthy Hosts, Latency, EB Health)
+# 5. CloudWatch Alarms (CPU, Unhealthy Hosts, Latency, EB Health)
 # -----------------------------------------------------------------------------
 module "cloudwatch" {
   source = "./modules/cloudwatch"
 
-  environment            = var.environment
-  autoscaling_group_name = module.elastic_beanstalk.autoscaling_groups[0]
-  alb_arn_suffix         = module.elastic_beanstalk.load_balancers[0]
+  environment             = var.environment
+  autoscaling_group_name  = module.elastic_beanstalk.autoscaling_groups[0]
+  alb_arn_suffix          = module.elastic_beanstalk.load_balancers[0]
   target_group_arn_suffix = var.target_group_arn_suffix
-  eb_environment_name    = module.elastic_beanstalk.environment_name
+  eb_environment_name     = module.elastic_beanstalk.environment_name
 
   # Thresholds
   cpu_threshold     = var.cpu_threshold

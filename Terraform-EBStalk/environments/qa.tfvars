@@ -37,3 +37,8 @@ cpu_threshold     = 80
 latency_threshold = 1.5
 create_sns_topic  = true
 alarm_email       = ""  # <-- Add email for notifications
+
+# --- Custom Security Groups ---
+alb_ingress_cidrs = ["0.0.0.0/0"]
+alb_listener_port = 80
+app_port          = 80

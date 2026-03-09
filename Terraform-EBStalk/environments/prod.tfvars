@@ -37,3 +37,9 @@ cpu_threshold     = 70
 latency_threshold = 1.0
 create_sns_topic  = true
 alarm_email       = ""  # <-- Add email for notifications
+
+# --- Custom Security Groups ---
+# Restrict this CIDR in production as needed.
+alb_ingress_cidrs = ["0.0.0.0/0"]
+alb_listener_port = 80
+app_port          = 80

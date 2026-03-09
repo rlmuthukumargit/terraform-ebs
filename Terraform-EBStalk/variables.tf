@@ -1,5 +1,5 @@
 ################################################################################
-# Root Module — Variable Declarations
+# Root Module - Variable Declarations
 # Values are supplied per-environment via environments/*.tfvars
 ################################################################################
 
@@ -75,6 +75,27 @@ variable "public_subnet_cidrs" {
 variable "private_subnet_cidrs" {
   description = "CIDR blocks for private subnets (exactly 2)"
   type        = list(string)
+}
+
+# =============================================================================
+# Security Groups
+# =============================================================================
+variable "alb_ingress_cidrs" {
+  description = "CIDRs allowed to access the public ALB listener"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "alb_listener_port" {
+  description = "ALB listener port"
+  type        = number
+  default     = 80
+}
+
+variable "app_port" {
+  description = "Application port exposed by Elastic Beanstalk instances"
+  type        = number
+  default     = 80
 }
 
 # =============================================================================

@@ -203,6 +203,16 @@ resource "aws_elastic_beanstalk_environment" "this" {
     value     = aws_iam_role.eb_service_role.arn
   }
 
+  # Optional custom ALB security groups
+  dynamic "setting" {
+    for_each = length(var.alb_security_group_ids) > 0 ? [1] : []
+    content {
+      namespace = "aws:elbv2:loadbalancer"
+      name      = "SecurityGroups"
+      value     = join(",", var.alb_security_group_ids)
+    }
+  }
+
   # ALB listener on port 80
   setting {
     namespace = "aws:elbv2:listener:default"
@@ -246,10 +256,13 @@ resource "aws_elastic_beanstalk_environment" "this" {
     value     = aws_iam_instance_profile.ec2_profile.name
   }
 
-  setting {
-    namespace = "aws:autoscaling:launchconfiguration"
-    name      = "SecurityGroups"
-    value     = ""
+  dynamic "setting" {
+    for_each = length(var.instance_security_group_ids) > 0 ? [1] : []
+    content {
+      namespace = "aws:autoscaling:launchconfiguration"
+      name      = "SecurityGroups"
+      value     = join(",", var.instance_security_group_ids)
+    }
   }
 
   # ---------------------------------------------------------------------------

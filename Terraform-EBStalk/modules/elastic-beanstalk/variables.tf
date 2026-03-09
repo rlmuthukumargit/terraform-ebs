@@ -1,5 +1,5 @@
 ################################################################################
-# Elastic Beanstalk Module — Variables
+# Elastic Beanstalk Module - Variables
 ################################################################################
 
 variable "app_name" {
@@ -49,6 +49,18 @@ variable "public_subnet_ids" {
 variable "private_subnet_ids" {
   description = "List of private subnet IDs for EC2 instances"
   type        = list(string)
+}
+
+variable "alb_security_group_ids" {
+  description = "Optional ALB security group IDs for Elastic Beanstalk load balancer"
+  type        = list(string)
+  default     = []
+}
+
+variable "instance_security_group_ids" {
+  description = "Optional EC2 instance security group IDs for Elastic Beanstalk instances"
+  type        = list(string)
+  default     = []
 }
 
 # ------- S3 App Source -------

@@ -1,5 +1,5 @@
 ################################################################################
-# Root Module — Outputs
+# Root Module - Outputs
 ################################################################################
 
 # ------- OIDC -------
@@ -27,6 +27,17 @@ output "public_subnet_ids" {
 output "private_subnet_ids" {
   description = "Private subnet IDs"
   value       = module.vpc.private_subnet_ids
+}
+
+# ------- Security Groups -------
+output "alb_security_group_id" {
+  description = "Custom ALB security group ID"
+  value       = module.security_groups.alb_security_group_id
+}
+
+output "ec2_security_group_id" {
+  description = "Custom EB EC2 security group ID"
+  value       = module.security_groups.ec2_security_group_id
 }
 
 # ------- Elastic Beanstalk -------
