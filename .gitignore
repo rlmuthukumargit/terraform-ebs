@@ -1,0 +1,20 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*.auto.tfvars
+
+# Terraform lock (optional keep if team)
+#.terraform.lock.hcl
+
+# Build files
+*.jar
+*.war
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
