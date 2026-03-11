@@ -27,37 +27,7 @@ variable "environment" {
   }
 }
 
-# =============================================================================
-# OIDC Authentication
-# =============================================================================
-variable "oidc_provider_url" {
-  description = "OIDC provider URL (default: GitHub Actions)"
-  type        = string
-  default     = "https://token.actions.githubusercontent.com"
-}
 
-variable "oidc_thumbprints" {
-  description = "List of OIDC provider certificate thumbprints"
-  type        = list(string)
-  default     = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
-}
-
-variable "oidc_client_ids" {
-  description = "OIDC audience / client IDs"
-  type        = list(string)
-  default     = ["sts.amazonaws.com"]
-}
-
-variable "oidc_allowed_subjects" {
-  description = "OIDC subject claims allowed to assume the deploy role (e.g., repo:org/repo:ref:refs/heads/main)"
-  type        = list(string)
-}
-
-variable "oidc_role_name" {
-  description = "Name of the IAM role used for OIDC web identity assume"
-  type        = string
-  default     = "oidc-deploy-role"
-}
 
 # =============================================================================
 # VPC / Networking
@@ -109,7 +79,7 @@ variable "app_name" {
 variable "solution_stack_name" {
   description = "EB platform / solution stack name"
   type        = string
-  default     = "64bit Amazon Linux 2023 v4.0.3 running Corretto 17"
+  default     = "64bit Amazon Linux 2023 v4.10.0 running Corretto 21"
 }
 
 variable "instance_type" {
@@ -213,13 +183,13 @@ variable "eb_environment_description" {
 }
 
 variable "alb_scheme" {
-  description = "ALB scheme for Elastic Beanstalk (internal or internet facing)"
+  description = "ALB scheme for Elastic Beanstalk (internal or internet-facing)"
   type        = string
-  default     = "internet facing"
+  default     = "internet-facing"
 
   validation {
-    condition     = contains(["internal", "internet facing"], var.alb_scheme)
-    error_message = "alb_scheme must be either 'internal' or 'internet facing'."
+    condition     = contains(["internal", "internet-facing"], var.alb_scheme)
+    error_message = "alb_scheme must be either 'internal' or 'internet-facing'."
   }
 }
 

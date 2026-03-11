@@ -14,8 +14,13 @@ resource "aws_lb" "this" {
 
   enable_deletion_protection = var.enable_deletion_protection
 
+  # Temporarily disabled so Terraform can update the scheme
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = [
+      tags,
+      tags_all,
+      security_groups
+    ]
   }
 
   tags = {

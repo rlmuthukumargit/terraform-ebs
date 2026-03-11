@@ -17,7 +17,7 @@ resource "aws_vpc" "this" {
   enable_dns_hostnames = true
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {
@@ -38,7 +38,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {
@@ -58,7 +58,7 @@ resource "aws_subnet" "private" {
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {
@@ -75,7 +75,7 @@ resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {
@@ -91,7 +91,7 @@ resource "aws_eip" "nat" {
   domain = "vpc"
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {
@@ -103,10 +103,6 @@ resource "aws_eip" "nat" {
 resource "aws_nat_gateway" "this" {
   allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.public[0].id
-
-  lifecycle {
-    prevent_destroy = true
-  }
 
   tags = {
     Name        = "${var.environment}-nat-gw"

@@ -5,102 +5,6 @@
 ################################################################################
 
 # -----------------------------------------------------------------------------
-# IAM — Instance Profile for EC2 instances managed by EB
-# -----------------------------------------------------------------------------
-data "aws_iam_policy_document" "ec2_assume" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "ec2_role" {
-  name               = "${var.app_name}-${var.environment}-ec2-role"
-  assume_role_policy = data.aws_iam_policy_document.ec2_assume.json
-
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  tags = {
-    Name        = "${var.app_name}-${var.environment}-ec2-role"
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "ec2_web_tier" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier"
-}
-
-resource "aws_iam_role_policy_attachment" "ec2_worker_tier" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier"
-}
-
-resource "aws_iam_role_policy_attachment" "ec2_multicontainer" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSElasticBeanstalkMulticontainerDocker"
-}
-
-# S3 read access so instances can fetch the app artifact
-resource "aws_iam_role_policy_attachment" "ec2_s3_read" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-}
-
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "${var.app_name}-${var.environment}-ec2-profile"
-  role = aws_iam_role.ec2_role.name
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-# -----------------------------------------------------------------------------
-# IAM — Service Role for Elastic Beanstalk
-# -----------------------------------------------------------------------------
-data "aws_iam_policy_document" "eb_assume" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["elasticbeanstalk.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "eb_service_role" {
-  name               = "${var.app_name}-${var.environment}-eb-service-role"
-  assume_role_policy = data.aws_iam_policy_document.eb_assume.json
-
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  tags = {
-    Name        = "${var.app_name}-${var.environment}-eb-service-role"
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "eb_enhanced_health" {
-  role       = aws_iam_role.eb_service_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth"
-}
-
-resource "aws_iam_role_policy_attachment" "eb_managed_updates" {
-  role       = aws_iam_role.eb_service_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy"
-}
-
-# -----------------------------------------------------------------------------
 # Elastic Beanstalk Application
 # -----------------------------------------------------------------------------
 resource "aws_elastic_beanstalk_application" "this" {
@@ -108,13 +12,13 @@ resource "aws_elastic_beanstalk_application" "this" {
   description = "${var.app_name} application for ${var.environment} environment"
 
   appversion_lifecycle {
-    service_role          = aws_iam_role.eb_service_role.arn
+    service_role          = var.eb_service_role_arn
     max_count             = var.app_version_max_count
     delete_source_from_s3 = false
   }
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {
@@ -139,6 +43,13 @@ resource "aws_elastic_beanstalk_application_version" "this" {
     Environment = var.environment
     ManagedBy   = "terraform"
   }
+
+  lifecycle {
+    ignore_changes = [
+      tags,
+      tags_all
+    ]
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -159,7 +70,10 @@ resource "aws_elastic_beanstalk_environment" "this" {
   cname_prefix        = local.eb_cname_prefix != "" ? local.eb_cname_prefix : null
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = [
+      tags,
+      tags_all
+    ]
   }
 
   # ---------------------------------------------------------------------------
@@ -222,10 +136,19 @@ resource "aws_elastic_beanstalk_environment" "this" {
     }
   }
 
+  dynamic "setting" {
+    for_each = var.shared_alb_arn != "" ? [1] : []
+    content {
+      namespace = "aws:elasticbeanstalk:environment"
+      name      = "LoadBalancerIsShared"
+      value     = "true"
+    }
+  }
+
   setting {
     namespace = "aws:elasticbeanstalk:environment"
     name      = "ServiceRole"
-    value     = aws_iam_role.eb_service_role.arn
+    value     = var.eb_service_role_arn
   }
   # Optional application environment variables
   dynamic "setting" {
@@ -290,7 +213,7 @@ resource "aws_elastic_beanstalk_environment" "this" {
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
-    value     = aws_iam_instance_profile.ec2_profile.name
+    value     = var.ec2_instance_profile_name
   }
 
   dynamic "setting" {

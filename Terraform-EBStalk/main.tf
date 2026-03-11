@@ -4,19 +4,6 @@
 ################################################################################
 
 # -----------------------------------------------------------------------------
-# 1. OIDC Provider (creates IAM OIDC IdP + deploy role in target account)
-# -----------------------------------------------------------------------------
-module "oidc" {
-  source = "./modules/oidc"
-
-  environment       = var.environment
-  oidc_provider_url = var.oidc_provider_url
-  oidc_thumbprints  = var.oidc_thumbprints
-  oidc_client_ids   = var.oidc_client_ids
-  allowed_subjects  = var.oidc_allowed_subjects
-}
-
-# -----------------------------------------------------------------------------
 # 2. VPC (2-AZ, public + private subnets)
 # -----------------------------------------------------------------------------
 module "vpc" {
@@ -59,7 +46,17 @@ module "alb" {
 }
 
 # -----------------------------------------------------------------------------
-# 5. Elastic Beanstalk (App + Version from S3 + Environment with ALB & ASG)
+# 5. IAM Roles (EC2 Instance Profile and EB Service Role)
+# -----------------------------------------------------------------------------
+module "iam_roles" {
+  source = "./modules/iam-roles"
+
+  app_name    = var.app_name
+  environment = var.environment
+}
+
+# -----------------------------------------------------------------------------
+# 6. Elastic Beanstalk (App + Version from S3 + Environment with ALB & ASG)
 # -----------------------------------------------------------------------------
 module "elastic_beanstalk" {
   source = "./modules/elastic-beanstalk"
@@ -85,6 +82,10 @@ module "elastic_beanstalk" {
   alb_security_group_ids      = [module.security_groups.alb_security_group_id]
   instance_security_group_ids = [module.security_groups.ec2_security_group_id]
 
+  # IAM Roles
+  ec2_instance_profile_name = module.iam_roles.ec2_instance_profile_name
+  eb_service_role_arn       = module.iam_roles.eb_service_role_arn
+
   # Shared ALB — pass ARN if enabled, empty string if disabled (EB manages own)
   shared_alb_arn = var.enable_shared_alb ? module.alb[0].alb_arn : ""
 
@@ -98,7 +99,7 @@ module "elastic_beanstalk" {
 }
 
 # -----------------------------------------------------------------------------
-# 6. CloudWatch Alarms (CPU, Unhealthy Hosts, Latency, EB Health)
+# 7. CloudWatch Alarms (CPU, Unhealthy Hosts, Latency, EB Health)
 # -----------------------------------------------------------------------------
 module "cloudwatch" {
   source = "./modules/cloudwatch"

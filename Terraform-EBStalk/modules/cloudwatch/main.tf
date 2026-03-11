@@ -16,7 +16,7 @@ resource "aws_sns_topic" "alarms" {
   name  = "${var.environment}-eb-alarms"
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {
@@ -61,7 +61,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   ok_actions    = [local.sns_topic_arn]
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {
@@ -86,8 +86,10 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_hosts" {
   threshold           = 0
   treat_missing_data  = "notBreaching"
 
-  dimensions = {
+  dimensions = var.target_group_arn_suffix != "" ? {
     TargetGroup  = var.target_group_arn_suffix
+    LoadBalancer = var.alb_arn_suffix
+  } : {
     LoadBalancer = var.alb_arn_suffix
   }
 
@@ -95,7 +97,7 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_hosts" {
   ok_actions    = [local.sns_topic_arn]
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {
@@ -128,7 +130,7 @@ resource "aws_cloudwatch_metric_alarm" "latency_high" {
   ok_actions    = [local.sns_topic_arn]
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {
@@ -161,7 +163,7 @@ resource "aws_cloudwatch_metric_alarm" "env_health" {
   ok_actions    = [local.sns_topic_arn]
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {

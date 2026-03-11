@@ -24,7 +24,7 @@ resource "aws_security_group" "alb" {
   }
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {
@@ -54,7 +54,7 @@ resource "aws_security_group" "ec2" {
   }
 
   lifecycle {
-    prevent_destroy = true
+    ignore_changes = all
   }
 
   tags = {

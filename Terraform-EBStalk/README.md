@@ -11,65 +11,66 @@ Reusable Terraform modules for deploying AWS Elastic Beanstalk across `dev`, `qa
 
 ```mermaid
 flowchart TB
-    ADO["Azure DevOps Pipeline\nBuild -> Dev -> QA -> Prod"]
-    APP["Sample App Build\nMaven JAR + Procfile + ZIP"]
-    AZ["Azure Blob Backend\nTerraform State"]
+    DEV["Developer / User\n(Terraform CLI)"]
+    S3_STATE["AWS S3 Backend\nTerraform State"]
+    
+    DEV -->|terraform apply| S3_STATE
 
-    ADO --> APP
-    ADO --> AZ
-
-    subgraph DEV["AWS Dev Account"]
-      D1["S3 Artifacts (dev)"]
-      D2["Terraform Modules\nVPC + SG + EB + CW + OIDC"]
-      D3["Elastic Beanstalk Env\nInternal/Public ALB + ASG"]
+    subgraph DEV_ENV["AWS Dev Account"]
+      D1["S3 Artifacts (dev)\n(Spring Boot JAR)"]
+      D2["Shared ALB Module\n(Internet Facing)"]
+      D3["Elastic Beanstalk Env\n(Autoscaling Group)"]
       D4["CloudWatch + SNS"]
-      D1 --> D3
-      D2 --> D3
-      D3 --> D4
+      D1 -->|Deploy Application| D3
+      D2 -->|Host-Based Routing\n(Custom CNAME)| D3
+      D3 -->|Metrics & Health| D4
     end
 
-    subgraph QA["AWS QA Account"]
+    subgraph QA_ENV["AWS QA Account"]
       Q1["S3 Artifacts (qa)"]
-      Q2["Terraform Modules\nVPC + SG + EB + CW + OIDC"]
-      Q3["Elastic Beanstalk Env\nInternal/Public ALB + ASG"]
+      Q2["Shared ALB Module"]
+      Q3["Elastic Beanstalk Env"]
       Q4["CloudWatch + SNS"]
       Q1 --> Q3
       Q2 --> Q3
       Q3 --> Q4
     end
 
-    subgraph PROD["AWS Prod Account"]
+    subgraph PROD_ENV["AWS Prod Account"]
       P1["S3 Artifacts (prod)"]
-      P2["Terraform Modules\nVPC + SG + EB + CW + OIDC"]
-      P3["Elastic Beanstalk Env\nInternal/Public ALB + ASG"]
+      P2["Shared ALB Module"]
+      P3["Elastic Beanstalk Env"]
       P4["CloudWatch + SNS"]
       P1 --> P3
       P2 --> P3
       P3 --> P4
     end
 
-    ADO --> DEV
-    ADO --> QA
-    ADO --> PROD
+    DEV -->|Deploy Infrastructure| DEV_ENV
+    DEV -->|Deploy Infrastructure| QA_ENV
+    DEV -->|Deploy Infrastructure| PROD_ENV
 ```
 
 ### Architecture (Text Fallback)
 
 ```text
-Azure DevOps Pipeline (Build -> Dev -> QA -> Prod)
-+- Build sample app (Maven) -> app bundle ZIP
-+- Terraform state -> Azure Blob backend
+Local Deployments via Terraform CLI
++- Terraform state -> AWS S3 backend
 +- Deploy to AWS accounts
-   +- Dev:  S3 artifact -> EB env (ALB + ASG) -> CloudWatch/SNS
-   +- QA:   S3 artifact -> EB env (ALB + ASG) -> CloudWatch/SNS
-   +- Prod: S3 artifact -> EB env (ALB + ASG) -> CloudWatch/SNS
+   +- Dev:  S3 artifact -> EB env (ASG) <- Shared ALB (Internet Facing)
+            EB env -> CloudWatch/SNS
+   +- QA:   S3 artifact -> EB env (ASG) <- Shared ALB (Internet Facing)
+            EB env -> CloudWatch/SNS
+   +- Prod: S3 artifact -> EB env (ASG) <- Shared ALB (Internet Facing)
+            EB env -> CloudWatch/SNS
 
 Shared Terraform modules:
-- oidc
-- vpc
-- security-groups
-- elastic-beanstalk
-- cloudwatch
+- iam-roles         # Centralised IAM Profiles
+- vpc               # Network Layer
+- security-groups   # Resource Security Policies
+- alb               # Shared Application Load Balancer
+- elastic-beanstalk # Application Layer & ASG
+- cloudwatch        # Monitoring & Alerting
 ```
 ## Key Design
 

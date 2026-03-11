@@ -2,16 +2,16 @@
 # Root Module - Outputs
 ################################################################################
 
-# ------- OIDC -------
-output "oidc_provider_arn" {
-  description = "ARN of the IAM OIDC identity provider"
-  value       = module.oidc.oidc_provider_arn
-}
-
-output "oidc_role_arn" {
-  description = "ARN of the OIDC deploy role"
-  value       = module.oidc.oidc_role_arn
-}
+# ------- OIDC (DISABLED — manual CLI mode) -------
+# output "oidc_provider_arn" {
+#   description = "ARN of the IAM OIDC identity provider"
+#   value       = var.enable_oidc ? module.oidc[0].oidc_provider_arn : null
+# }
+#
+# output "oidc_role_arn" {
+#   description = "ARN of the OIDC deploy role"
+#   value       = var.enable_oidc ? module.oidc[0].oidc_role_arn : null
+# }
 
 # ------- VPC -------
 output "vpc_id" {

@@ -112,13 +112,13 @@ variable "eb_environment_description" {
 }
 
 variable "alb_scheme" {
-  description = "ALB scheme for Elastic Beanstalk (internal or internet facing)"
+  description = "ALB scheme for Elastic Beanstalk (internal or internet-facing)"
   type        = string
-  default     = "internet facing"
+  default     = "internet-facing"
 
   validation {
-    condition     = contains(["internal", "internet facing"], var.alb_scheme)
-    error_message = "alb_scheme must be either 'internal' or 'internet facing'."
+    condition     = contains(["internal", "internet-facing"], var.alb_scheme)
+    error_message = "alb_scheme must be either 'internal' or 'internet-facing'."
   }
 }
 
@@ -133,5 +133,16 @@ variable "shared_alb_arn" {
   description = "ARN of a shared ALB. If set, EB uses this ALB instead of creating its own."
   type        = string
   default     = ""
+}
+
+# ------- IAM Roles -------
+variable "ec2_instance_profile_name" {
+  description = "Name of the EC2 instance profile for Elastic Beanstalk instances"
+  type        = string
+}
+
+variable "eb_service_role_arn" {
+  description = "ARN of the Elastic Beanstalk service role"
+  type        = string
 }
 
