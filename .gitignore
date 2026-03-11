@@ -18,3 +18,16 @@ override.tf.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Terraform
+.terraform/
+*.tfstate*
+crash.log
+
+# Build
+*.jar
+*.war
+
+# OS
+.DS_Store
+Thumbs.db
