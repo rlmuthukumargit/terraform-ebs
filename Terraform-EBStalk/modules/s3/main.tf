@@ -3,8 +3,10 @@
 # Manages the artifact bucket for application JARs/WARs
 ################################################################################
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_s3_bucket" "artifacts" {
-  bucket = "${var.resource_prefix}-artifacts"
+  bucket = "${var.resource_prefix}-artifacts-${data.aws_caller_identity.current.account_id}"
 
   # Prevent accidental deletion of the bucket
   lifecycle {
@@ -12,7 +14,7 @@ resource "aws_s3_bucket" "artifacts" {
   }
 
   tags = {
-    Name        = "${var.resource_prefix}-artifacts"
+    Name        = "${var.resource_prefix}-artifacts-${data.aws_caller_identity.current.account_id}"
     Environment = var.environment
     ManagedBy   = "terraform"
   }
