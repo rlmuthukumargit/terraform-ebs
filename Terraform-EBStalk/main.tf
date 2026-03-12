@@ -103,7 +103,7 @@ module "elastic_beanstalk" {
 
   # S3 app source — managed by our S3 module
   app_s3_bucket     = module.s3.bucket_id
-  app_s3_key        = var.app_s3_key
+  app_s3_key        = module.s3.object_key     # Forms an implicit dependency on the aws_s3_object resource
   app_version_label = var.app_version_label
 
   # Logging

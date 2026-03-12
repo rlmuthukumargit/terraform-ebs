@@ -38,6 +38,11 @@ resource "aws_elastic_beanstalk_application_version" "this" {
   bucket      = var.app_s3_bucket
   key         = var.app_s3_key
 
+  # IMPORTANT: Elastic Beanstalk needs the physical object to exist in S3 before this resource is created
+  # We use the key to imply a dependency, but an explicit depends_on is safer here if passed through root
+  # However, Terraform requires depends_on to be based on module outputs or directly passed resources.
+  # Since app_s3_key and app_s3_bucket are now output from the S3 module, passing them creates an implicit dependency.
+
   tags = {
     Name        = "${var.resource_prefix}-${var.app_version_label}"
     Environment = var.environment

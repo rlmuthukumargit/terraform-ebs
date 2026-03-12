@@ -6,7 +6,7 @@
 ################################################################################
 
 resource "aws_lb" "this" {
-  name               = "${var.app_name}-${var.environment}-alb"
+  name               = "${var.resource_prefix}-alb"
   internal           = var.internal
   load_balancer_type = "application"
   security_groups    = var.security_group_ids
@@ -49,7 +49,7 @@ resource "aws_lb_listener" "http" {
   }
 
   tags = {
-    Name        = "${var.app_name}-${var.environment}-http"
+    Name        = "${var.resource_prefix}-http"
     Environment = var.environment
     ManagedBy   = "terraform"
   }
@@ -77,7 +77,7 @@ resource "aws_lb_listener" "https" {
   }
 
   tags = {
-    Name        = "${var.app_name}-${var.environment}-https"
+    Name        = "${var.resource_prefix}-https"
     Environment = var.environment
     ManagedBy   = "terraform"
   }

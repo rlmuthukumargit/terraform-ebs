@@ -5,7 +5,7 @@
 ################################################################################
 
 resource "aws_security_group" "alb" {
-  name        = "${var.app_name}-${var.environment}-alb-sg"
+  name        = "${var.resource_prefix}-alb-sg"
   description = "ALB security group for ${var.app_name} ${var.environment}"
   vpc_id      = var.vpc_id
 
@@ -35,7 +35,7 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_security_group" "ec2" {
-  name        = "${var.app_name}-${var.environment}-ec2-sg"
+  name        = "${var.resource_prefix}-ec2-sg"
   description = "EB EC2 security group for ${var.app_name} ${var.environment}"
   vpc_id      = var.vpc_id
 

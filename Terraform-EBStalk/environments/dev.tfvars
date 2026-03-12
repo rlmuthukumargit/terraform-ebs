@@ -6,7 +6,7 @@
 aws_region     = "us-east-1"
 aws_account_id = "911287867452" # <-- Replace with your dev AWS account ID
 environment    = "dev"
-resource_prefix = "my-app-dev"
+resource_prefix = "tss-ebs-dev"
 
 # --- VPC ---
 vpc_cidr             = "10.0.0.0/16"
