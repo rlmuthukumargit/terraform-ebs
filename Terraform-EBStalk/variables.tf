@@ -105,6 +105,12 @@ variable "max_instances" {
   default     = 4
 }
 
+variable "root_volume_size" {
+  description = "The size of the EBS root volume (in GB)"
+  type        = number
+  default     = 20
+}
+
 # =============================================================================
 # S3 Application Source
 # =============================================================================

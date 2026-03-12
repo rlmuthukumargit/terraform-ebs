@@ -230,6 +230,12 @@ resource "aws_elastic_beanstalk_environment" "this" {
     }
   }
 
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "RootVolumeSize"
+    value     = var.root_volume_size
+  }
+
   # ---------------------------------------------------------------------------
   # Auto Scaling Trigger (CPU based)
   # ---------------------------------------------------------------------------

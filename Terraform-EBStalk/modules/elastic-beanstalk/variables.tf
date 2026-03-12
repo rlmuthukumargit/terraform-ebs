@@ -40,6 +40,12 @@ variable "max_instances" {
   default     = 4
 }
 
+variable "root_volume_size" {
+  description = "The size of the EBS root volume (in GB)"
+  type        = number
+  default     = 20
+}
+
 # ------- VPC -------
 variable "vpc_id" {
   description = "VPC ID to deploy the EB environment into"

@@ -19,6 +19,7 @@ solution_stack_name = "64bit Amazon Linux 2023 v4.10.0 running Corretto 21"
 instance_type       = "t3.micro"
 min_instances       = 1
 max_instances       = 2
+root_volume_size    = 20
 
 # --- S3 Application Source ---
 # app_s3_bucket     = "my-app-artifacts-dev-911287867452"   # <-- Managed by Terraform module now

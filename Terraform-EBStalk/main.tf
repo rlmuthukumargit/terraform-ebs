@@ -84,6 +84,7 @@ module "elastic_beanstalk" {
   instance_type               = var.instance_type
   min_instances               = var.min_instances
   max_instances               = var.max_instances
+  root_volume_size            = var.root_volume_size
 
   # VPC wiring
   vpc_id             = module.vpc.vpc_id
