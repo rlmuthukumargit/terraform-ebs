@@ -2,6 +2,11 @@
 # Security Groups Module - Variables
 ################################################################################
 
+variable "resource_prefix" {
+  description = "A naming prefix for all resources"
+  type        = string
+}
+
 variable "app_name" {
   description = "Application name used for tagging/naming"
   type        = string

@@ -8,7 +8,7 @@
 # Elastic Beanstalk Application
 # -----------------------------------------------------------------------------
 resource "aws_elastic_beanstalk_application" "this" {
-  name        = "${var.app_name}-${var.environment}"
+  name        = var.resource_prefix
   description = "${var.app_name} application for ${var.environment} environment"
 
   appversion_lifecycle {
@@ -22,7 +22,7 @@ resource "aws_elastic_beanstalk_application" "this" {
   }
 
   tags = {
-    Name        = "${var.app_name}-${var.environment}"
+    Name        = var.resource_prefix
     Environment = var.environment
     ManagedBy   = "terraform"
   }
@@ -32,14 +32,14 @@ resource "aws_elastic_beanstalk_application" "this" {
 # Application Version — sourced from S3 bucket (JAR / WAR)
 # -----------------------------------------------------------------------------
 resource "aws_elastic_beanstalk_application_version" "this" {
-  name        = "${var.app_name}-${var.environment}-${var.app_version_label}"
+  name        = "${var.resource_prefix}-${var.app_version_label}"
   application = aws_elastic_beanstalk_application.this.name
   description = "Version ${var.app_version_label} deployed from s3://${var.app_s3_bucket}/${var.app_s3_key}"
   bucket      = var.app_s3_bucket
   key         = var.app_s3_key
 
   tags = {
-    Name        = "${var.app_name}-${var.environment}-${var.app_version_label}"
+    Name        = "${var.resource_prefix}-${var.app_version_label}"
     Environment = var.environment
     ManagedBy   = "terraform"
   }
@@ -56,7 +56,7 @@ resource "aws_elastic_beanstalk_application_version" "this" {
 # Elastic Beanstalk Environment — LoadBalanced, ALB, Auto Scaling
 # -----------------------------------------------------------------------------
 locals {
-  eb_environment_name        = trimspace(var.eb_environment_name) != "" ? trimspace(var.eb_environment_name) : "${var.app_name}-${var.environment}-env"
+  eb_environment_name        = trimspace(var.eb_environment_name) != "" ? trimspace(var.eb_environment_name) : "${var.resource_prefix}-env"
   eb_environment_description = trimspace(var.eb_environment_description) != "" ? trimspace(var.eb_environment_description) : "${var.app_name} environment for ${var.environment}"
   eb_cname_prefix            = trimspace(var.eb_environment_cname_prefix)
 }
@@ -355,7 +355,7 @@ resource "aws_elastic_beanstalk_environment" "this" {
   }
 
   tags = {
-    Name        = "${var.app_name}-${var.environment}-env"
+    Name        = "${var.resource_prefix}-env"
     Environment = var.environment
     ManagedBy   = "terraform"
   }

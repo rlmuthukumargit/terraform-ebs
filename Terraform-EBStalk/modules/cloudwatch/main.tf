@@ -13,7 +13,7 @@
 # -----------------------------------------------------------------------------
 resource "aws_sns_topic" "alarms" {
   count = var.create_sns_topic ? 1 : 0
-  name  = "${var.environment}-eb-alarms"
+  name  = "${var.resource_prefix}-alarms"
 
   lifecycle {
     ignore_changes = all
@@ -42,7 +42,7 @@ resource "aws_sns_topic_subscription" "email" {
 # Alarm 1: CPU Utilization (Auto Scaling Group)
 # -----------------------------------------------------------------------------
 resource "aws_cloudwatch_metric_alarm" "cpu_high" {
-  alarm_name          = "${var.environment}-eb-cpu-utilization-high"
+  alarm_name          = "${var.resource_prefix}-cpu-utilization-high"
   alarm_description   = "CPU utilization exceeds ${var.cpu_threshold}% for ${var.environment} EB environment"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 3
@@ -75,7 +75,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
 # Alarm 2: ALB Unhealthy Host Count
 # -----------------------------------------------------------------------------
 resource "aws_cloudwatch_metric_alarm" "unhealthy_hosts" {
-  alarm_name          = "${var.environment}-eb-unhealthy-hosts"
+  alarm_name          = "${var.resource_prefix}-unhealthy-hosts"
   alarm_description   = "Unhealthy host count > 0 on ALB target group for ${var.environment}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
@@ -111,7 +111,7 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_hosts" {
 # Alarm 3: ALB Target Response Latency (p99)
 # -----------------------------------------------------------------------------
 resource "aws_cloudwatch_metric_alarm" "latency_high" {
-  alarm_name          = "${var.environment}-eb-latency-high"
+  alarm_name          = "${var.resource_prefix}-latency-high"
   alarm_description   = "ALB target response time exceeds ${var.latency_threshold}s for ${var.environment}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 3
@@ -144,7 +144,7 @@ resource "aws_cloudwatch_metric_alarm" "latency_high" {
 # Alarm 4: EB Environment Health Status
 # -----------------------------------------------------------------------------
 resource "aws_cloudwatch_metric_alarm" "env_health" {
-  alarm_name          = "${var.environment}-eb-environment-health"
+  alarm_name          = "${var.resource_prefix}-environment-health"
   alarm_description   = "EB environment health degraded for ${var.environment}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2

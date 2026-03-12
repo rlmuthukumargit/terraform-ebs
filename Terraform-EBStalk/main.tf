@@ -1,7 +1,14 @@
-################################################################################
-# Root Module - Orchestrates all sub-modules
-# Usage: terraform plan -var-file="environments/dev.tfvars"
-################################################################################
+# -----------------------------------------------------------------------------
+# 1. Managed S3 Artifact Bucket
+# -----------------------------------------------------------------------------
+module "s3" {
+  source = "./modules/s3"
+
+  resource_prefix = var.resource_prefix
+  environment     = var.environment
+  app_source_file = var.app_source_file
+  app_s3_key      = var.app_s3_key
+}
 
 # -----------------------------------------------------------------------------
 # 2. VPC (2-AZ, public + private subnets)
@@ -9,6 +16,7 @@
 module "vpc" {
   source = "./modules/vpc"
 
+  resource_prefix      = var.resource_prefix
   environment          = var.environment
   vpc_cidr             = var.vpc_cidr
   public_subnet_cidrs  = var.public_subnet_cidrs
@@ -21,6 +29,7 @@ module "vpc" {
 module "security_groups" {
   source = "./modules/security-groups"
 
+  resource_prefix   = var.resource_prefix
   app_name          = var.app_name
   environment       = var.environment
   vpc_id            = module.vpc.vpc_id
@@ -36,6 +45,7 @@ module "alb" {
   count  = var.enable_shared_alb ? 1 : 0
   source = "./modules/alb"
 
+  resource_prefix    = var.resource_prefix
   app_name           = var.app_name
   environment        = var.environment
   vpc_id             = module.vpc.vpc_id
@@ -51,8 +61,9 @@ module "alb" {
 module "iam_roles" {
   source = "./modules/iam-roles"
 
-  app_name    = var.app_name
-  environment = var.environment
+  resource_prefix = var.resource_prefix
+  app_name        = var.app_name
+  environment     = var.environment
 }
 
 # -----------------------------------------------------------------------------
@@ -61,6 +72,7 @@ module "iam_roles" {
 module "elastic_beanstalk" {
   source = "./modules/elastic-beanstalk"
 
+  resource_prefix             = var.resource_prefix
   app_name                    = var.app_name
   environment                 = var.environment
   eb_environment_name         = var.eb_environment_name
@@ -89,8 +101,8 @@ module "elastic_beanstalk" {
   # Shared ALB — pass ARN if enabled, empty string if disabled (EB manages own)
   shared_alb_arn = var.enable_shared_alb ? module.alb[0].alb_arn : ""
 
-  # S3 app source
-  app_s3_bucket     = var.app_s3_bucket
+  # S3 app source — managed by our S3 module
+  app_s3_bucket     = module.s3.bucket_id
   app_s3_key        = var.app_s3_key
   app_version_label = var.app_version_label
 
@@ -104,6 +116,7 @@ module "elastic_beanstalk" {
 module "cloudwatch" {
   source = "./modules/cloudwatch"
 
+  resource_prefix         = var.resource_prefix
   environment             = var.environment
   autoscaling_group_name  = module.elastic_beanstalk.autoscaling_groups[0]
   alb_arn_suffix          = module.elastic_beanstalk.load_balancers[0]

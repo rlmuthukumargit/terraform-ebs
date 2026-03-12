@@ -1,5 +1,5 @@
 ################################################################################
-# IAM Roles Module - Variables
+# S3 Module — Variables
 ################################################################################
 
 variable "resource_prefix" {
@@ -7,12 +7,17 @@ variable "resource_prefix" {
   type        = string
 }
 
-variable "app_name" {
-  description = "Name of the application"
+variable "environment" {
+  description = "Environment name (dev, qa, prod)"
   type        = string
 }
 
-variable "environment" {
-  description = "Environment name (e.g., dev, qa, prod)"
+variable "app_source_file" {
+  description = "Path to the local application JAR/WAR artifact"
+  type        = string
+}
+
+variable "app_s3_key" {
+  description = "Destination object key inside the S3 bucket"
   type        = string
 }

@@ -6,6 +6,7 @@
 aws_region     = "us-east-1"
 aws_account_id = "222222222222" # <-- Replace with your QA AWS account ID
 environment    = "qa"
+resource_prefix = "my-app-qa"
 
 
 
@@ -22,8 +23,9 @@ min_instances       = 2
 max_instances       = 4
 
 # --- S3 Application Source ---
-app_s3_bucket     = "my-app-artifacts-qa"    # <-- Replace with your S3 bucket
-app_s3_key        = "releases/my-app-v1.jar" # <-- Replace with your JAR/WAR path
+# app_s3_bucket     = "my-app-artifacts-qa"    # <-- Managed by Terraform module now
+app_source_file   = "./sample-app/my-app-v1.jar" # <-- Update path if JAR is somewhere else
+app_s3_key        = "releases/my-app-v1.jar" # <-- Replace with your JAR/WAR target pattern
 app_version_label = "v1"
 
 # --- Logging ---

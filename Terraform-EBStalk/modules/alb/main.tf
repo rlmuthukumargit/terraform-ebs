@@ -24,7 +24,7 @@ resource "aws_lb" "this" {
   }
 
   tags = {
-    Name        = "${var.app_name}-${var.environment}-alb"
+    Name        = "${var.resource_prefix}-alb"
     Environment = var.environment
     ManagedBy   = "terraform"
   }

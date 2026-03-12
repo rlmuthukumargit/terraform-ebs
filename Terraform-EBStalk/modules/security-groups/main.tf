@@ -28,7 +28,7 @@ resource "aws_security_group" "alb" {
   }
 
   tags = {
-    Name        = "${var.app_name}-${var.environment}-alb-sg"
+    Name        = "${var.resource_prefix}-alb-sg"
     Environment = var.environment
     ManagedBy   = "terraform"
   }
@@ -58,7 +58,7 @@ resource "aws_security_group" "ec2" {
   }
 
   tags = {
-    Name        = "${var.app_name}-${var.environment}-ec2-sg"
+    Name        = "${var.resource_prefix}-ec2-sg"
     Environment = var.environment
     ManagedBy   = "terraform"
   }

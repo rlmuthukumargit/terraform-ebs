@@ -2,6 +2,11 @@
 # Elastic Beanstalk Module - Variables
 ################################################################################
 
+variable "resource_prefix" {
+  description = "A naming prefix for all resources"
+  type        = string
+}
+
 variable "app_name" {
   description = "Name of the Elastic Beanstalk application"
   type        = string

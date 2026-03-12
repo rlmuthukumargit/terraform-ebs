@@ -17,7 +17,7 @@ data "aws_iam_policy_document" "ec2_assume" {
 }
 
 resource "aws_iam_role" "ec2_role" {
-  name               = "${var.app_name}-${var.environment}-ec2-role"
+  name               = "${var.resource_prefix}-ec2-role"
   assume_role_policy = data.aws_iam_policy_document.ec2_assume.json
 
   lifecycle {
@@ -54,7 +54,7 @@ resource "aws_iam_role_policy_attachment" "ec2_s3_read" {
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "${var.app_name}-${var.environment}-ec2-profile"
+  name = "${var.resource_prefix}-ec2-profile"
   role = aws_iam_role.ec2_role.name
 
   lifecycle {
@@ -76,7 +76,7 @@ data "aws_iam_policy_document" "eb_assume" {
 }
 
 resource "aws_iam_role" "eb_service_role" {
-  name               = "${var.app_name}-${var.environment}-eb-service-role"
+  name               = "${var.resource_prefix}-eb-service-role"
   assume_role_policy = data.aws_iam_policy_document.eb_assume.json
 
   lifecycle {

@@ -6,6 +6,7 @@
 aws_region     = "us-east-1"
 aws_account_id = "911287867452" # <-- Replace with your dev AWS account ID
 environment    = "dev"
+resource_prefix = "my-app-dev"
 
 # --- VPC ---
 vpc_cidr             = "10.0.0.0/16"
@@ -20,8 +21,9 @@ min_instances       = 1
 max_instances       = 2
 
 # --- S3 Application Source ---
-app_s3_bucket     = "my-app-artifacts-dev-911287867452"   # <-- Replace with your S3 bucket
-app_s3_key        = "releases/my-app-v1.jar" # <-- Replace with your JAR/WAR path
+# app_s3_bucket     = "my-app-artifacts-dev-911287867452"   # <-- Managed by Terraform module now
+app_source_file   = "./sample-app/my-app-v1.jar" # <-- Update path if JAR is somewhere else
+app_s3_key        = "releases/my-app-v1.jar" # <-- Replace with your JAR/WAR target pattern
 app_version_label = "v1"
 
 # --- Logging ---

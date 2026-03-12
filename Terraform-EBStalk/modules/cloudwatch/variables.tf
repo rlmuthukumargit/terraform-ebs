@@ -2,6 +2,11 @@
 # CloudWatch Alarms Module — Variables
 ################################################################################
 
+variable "resource_prefix" {
+  description = "A naming prefix for all resources"
+  type        = string
+}
+
 variable "environment" {
   description = "Environment name (dev, qa, prod)"
   type        = string

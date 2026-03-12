@@ -21,7 +21,7 @@ resource "aws_vpc" "this" {
   }
 
   tags = {
-    Name        = "${var.environment}-vpc"
+    Name        = "${var.resource_prefix}-vpc"
     Environment = var.environment
     ManagedBy   = "terraform"
   }
@@ -42,7 +42,7 @@ resource "aws_subnet" "public" {
   }
 
   tags = {
-    Name        = "${var.environment}-public-subnet-${count.index + 1}"
+    Name        = "${var.resource_prefix}-public-subnet-${count.index + 1}"
     Environment = var.environment
     Tier        = "public"
   }
@@ -62,7 +62,7 @@ resource "aws_subnet" "private" {
   }
 
   tags = {
-    Name        = "${var.environment}-private-subnet-${count.index + 1}"
+    Name        = "${var.resource_prefix}-private-subnet-${count.index + 1}"
     Environment = var.environment
     Tier        = "private"
   }
@@ -79,7 +79,7 @@ resource "aws_internet_gateway" "this" {
   }
 
   tags = {
-    Name        = "${var.environment}-igw"
+    Name        = "${var.resource_prefix}-igw"
     Environment = var.environment
   }
 }
@@ -95,7 +95,7 @@ resource "aws_eip" "nat" {
   }
 
   tags = {
-    Name        = "${var.environment}-nat-eip"
+    Name        = "${var.resource_prefix}-nat-eip"
     Environment = var.environment
   }
 }
@@ -105,7 +105,7 @@ resource "aws_nat_gateway" "this" {
   subnet_id     = aws_subnet.public[0].id
 
   tags = {
-    Name        = "${var.environment}-nat-gw"
+    Name        = "${var.resource_prefix}-nat-gw"
     Environment = var.environment
   }
 
@@ -126,7 +126,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name        = "${var.environment}-public-rt"
+    Name        = "${var.resource_prefix}-public-rt"
     Environment = var.environment
   }
 }
@@ -147,7 +147,7 @@ resource "aws_route_table" "private" {
   }
 
   tags = {
-    Name        = "${var.environment}-private-rt"
+    Name        = "${var.resource_prefix}-private-rt"
     Environment = var.environment
   }
 }

@@ -2,6 +2,11 @@
 # ALB Module — Variables
 ################################################################################
 
+variable "resource_prefix" {
+  description = "A naming prefix for all resources"
+  type        = string
+}
+
 variable "app_name" {
   description = "Application name prefix for resource naming"
   type        = string

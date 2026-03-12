@@ -12,6 +12,11 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "resource_prefix" {
+  description = "A naming prefix for all resources created by this Terraform configuration"
+  type        = string
+}
+
 variable "aws_account_id" {
   description = "Target AWS account ID for this environment"
   type        = string
@@ -103,8 +108,13 @@ variable "max_instances" {
 # =============================================================================
 # S3 Application Source
 # =============================================================================
-variable "app_s3_bucket" {
-  description = "S3 bucket containing the application JAR/WAR"
+# variable "app_s3_bucket" {
+#   description = "S3 bucket containing the application JAR/WAR"
+#   type        = string
+# }
+
+variable "app_source_file" {
+  description = "Path to the local application JAR/WAR artifact to upload"
   type        = string
 }
 
