@@ -41,9 +41,9 @@ alb_listener_port = 80
 app_port          = 80
 
 # --- Elastic Beanstalk Environment Info ---
-eb_environment_name         = "my-app-dev-env"
+# eb_environment_name         = "my-app-dev-env"
 eb_environment_cname_prefix = "myapp-dev-911287867452" # Domain: myapp-dev-911287867452.<region>.elasticbeanstalk.com
-eb_environment_description  = "Development Elastic Beanstalk environment"
+# eb_environment_description  = "Development Elastic Beanstalk environment"
 
 # --- ALB + EB App Environment Variables ---
 alb_scheme = "internet-facing"
