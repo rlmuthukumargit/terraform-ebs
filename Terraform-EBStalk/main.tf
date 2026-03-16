@@ -4,10 +4,11 @@
 module "s3" {
   source = "./modules/s3"
 
-  resource_prefix = var.resource_prefix
-  environment     = var.environment
-  app_source_file = var.app_source_file
-  app_s3_key      = var.app_s3_key
+  resource_prefix        = var.resource_prefix
+  environment            = var.environment
+  app_source_file        = var.app_source_file
+  app_s3_key             = var.app_s3_key
+  manage_artifact_object = var.manage_artifact_object
 }
 
 # -----------------------------------------------------------------------------

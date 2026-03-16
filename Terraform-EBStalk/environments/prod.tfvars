@@ -24,7 +24,7 @@ max_instances       = 6
 
 # --- S3 Application Source ---
 # app_s3_bucket     = "my-app-artifacts-prod"  # <-- Managed by Terraform module now
-app_source_file   = "./sample-app/my-app-v1.jar" # <-- Update path if JAR is somewhere else
+app_source_file   = "./app/my-app-v1.jar" # <-- Update path if JAR is somewhere else
 app_s3_key        = "releases/my-app-v1.jar" # <-- Replace with your JAR/WAR target pattern
 app_version_label = "v1"
 
@@ -49,7 +49,7 @@ eb_environment_cname_prefix = "my-app-prod" # Domain: my-app-prod.<region>.elast
 # eb_environment_description  = "Production Elastic Beanstalk environment"
 
 # --- ALB + EB App Environment Variables ---
-alb_scheme = "internet-facing"
+alb_scheme = "internal"
 eb_environment_variables = {
   APP_ENV     = "prod"
   SERVER_PORT = "5000"

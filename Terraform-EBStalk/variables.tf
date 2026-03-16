@@ -230,3 +230,9 @@ variable "alb_certificate_arn" {
   default     = ""
 }
 
+variable "manage_artifact_object" {
+  description = "Whether Terraform should manage the application artifact S3 object. Set to false if using external CI/CD tool to upload."
+  type        = bool
+  default     = true
+}
+

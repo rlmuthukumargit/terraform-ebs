@@ -53,6 +53,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "artifacts" {
 # Upload Application Artifact
 # -----------------------------------------------------------------------------
 resource "aws_s3_object" "artifact" {
+  count  = var.manage_artifact_object ? 1 : 0
   bucket = aws_s3_bucket.artifacts.id
   key    = var.app_s3_key
   source = var.app_source_file

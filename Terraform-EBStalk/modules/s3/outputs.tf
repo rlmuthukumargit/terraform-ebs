@@ -13,11 +13,11 @@ output "bucket_arn" {
 }
 
 output "object_key" {
-  description = "The S3 object key of the uploaded application artifact"
-  value       = aws_s3_object.artifact.key
+  description = "The S3 object key of the application artifact"
+  value       = var.manage_artifact_object ? aws_s3_object.artifact[0].key : var.app_s3_key
 }
 
 output "object_version_id" {
-  description = "The S3 version ID of the uploaded artifact (used for Elastic Beanstalk versioning)"
-  value       = aws_s3_object.artifact.version_id
+  description = "The S3 version ID of the application artifact (if managed)"
+  value       = var.manage_artifact_object ? aws_s3_object.artifact[0].version_id : null
 }
