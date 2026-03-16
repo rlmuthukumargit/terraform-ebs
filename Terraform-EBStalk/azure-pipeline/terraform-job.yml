@@ -1,10 +1,10 @@
 ################################################################################
 # Reusable Terraform Job Template
 #
-# STATUS: DISABLED — Not currently using Azure DevOps pipelines.
+# STATUS: DISABLED - Not currently using Azure DevOps pipelines.
 #         Uncomment the entire file when ready to use ADO CI/CD.
 #
-# Called by azure-pipelines.yml for each environment stage.
+# Called by azure-pipeline/azure-pipelines.yml for each environment stage.
 # Performs:
 #   1) Download sample app bundle
 #   2) Upload bundle to environment S3 bucket
@@ -115,3 +115,4 @@
 #                   set -euo pipefail
 #                   cd "${{ parameters.workingDirectory }}"
 #                   terraform apply -auto-approve tfplan
+

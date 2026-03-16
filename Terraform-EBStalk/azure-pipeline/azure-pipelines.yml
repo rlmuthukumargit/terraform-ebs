@@ -1,7 +1,4 @@
 # Azure DevOps Pipeline for Spring Boot on Elastic Beanstalk
-trigger:
-- main
-
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -80,3 +77,4 @@ stages:
         applicationType: 'zip'
         deploymentBundle: '$(System.ArtifactsDirectory)/drop/*.jar'
         versionLabel: '$(Build.BuildId)'
+

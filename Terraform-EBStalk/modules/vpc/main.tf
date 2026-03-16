@@ -1,7 +1,6 @@
 ################################################################################
 # VPC Module
-# Creates a VPC with 2 public + 2 private subnets across 2 AZs,
-# Internet Gateway, NAT Gateway, and route tables for HA deployment.
+# Creates a VPC with public and private subnets across 3 AZs.
 ################################################################################
 
 data "aws_availability_zones" "available" {
@@ -28,7 +27,7 @@ resource "aws_vpc" "this" {
 }
 
 # -----------------------------------------------------------------------------
-# Public Subnets (one per AZ — for ALB)
+# Public Subnets (one per AZ for ALB)
 # -----------------------------------------------------------------------------
 resource "aws_subnet" "public" {
   count                   = 3
@@ -49,7 +48,7 @@ resource "aws_subnet" "public" {
 }
 
 # -----------------------------------------------------------------------------
-# Private Subnets (one per AZ — for EC2 instances)
+# Private Subnets (one per AZ for EC2 instances)
 # -----------------------------------------------------------------------------
 resource "aws_subnet" "private" {
   count             = 3
@@ -66,94 +65,4 @@ resource "aws_subnet" "private" {
     Environment = var.environment
     Tier        = "private"
   }
-}
-
-# -----------------------------------------------------------------------------
-# Internet Gateway
-# -----------------------------------------------------------------------------
-resource "aws_internet_gateway" "this" {
-  vpc_id = aws_vpc.this.id
-
-  lifecycle {
-    ignore_changes = all
-  }
-
-  tags = {
-    Name        = "${var.resource_prefix}-igw"
-    Environment = var.environment
-  }
-}
-
-# -----------------------------------------------------------------------------
-# Elastic IP + NAT Gateway (single NAT for cost optimisation; use 2 for prod HA)
-# -----------------------------------------------------------------------------
-resource "aws_eip" "nat" {
-  domain = "vpc"
-
-  lifecycle {
-    ignore_changes = all
-  }
-
-  tags = {
-    Name        = "${var.resource_prefix}-nat-eip"
-    Environment = var.environment
-  }
-}
-
-resource "aws_nat_gateway" "this" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public[0].id
-
-  tags = {
-    Name        = "${var.resource_prefix}-nat-gw"
-    Environment = var.environment
-  }
-
-  depends_on = [aws_internet_gateway.this]
-}
-
-# -----------------------------------------------------------------------------
-# Route Tables
-# -----------------------------------------------------------------------------
-
-# Public route table → routes to Internet via IGW
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.this.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.this.id
-  }
-
-  tags = {
-    Name        = "${var.resource_prefix}-public-rt"
-    Environment = var.environment
-  }
-}
-
-resource "aws_route_table_association" "public" {
-  count          = 3
-  subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
-}
-
-# Private route table → routes to Internet via NAT Gateway
-resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.this.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.this.id
-  }
-
-  tags = {
-    Name        = "${var.resource_prefix}-private-rt"
-    Environment = var.environment
-  }
-}
-
-resource "aws_route_table_association" "private" {
-  count          = 3
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private.id
 }

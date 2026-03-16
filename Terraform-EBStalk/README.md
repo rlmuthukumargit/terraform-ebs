@@ -150,7 +150,7 @@ The pipeline automatically executes for each environment:
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
-> The pipeline template (`templates/terraform-job.yml`) handles `terraform init` with Azure Blob backend, `validate`, `plan`, and `apply` — **no manual CLI commands needed.**
+> The pipeline template (`azure-pipeline/terraform-job.yml`) handles `terraform init` with Azure Blob backend, `validate`, `plan`, and `apply` — **no manual CLI commands needed.**
 
 ---
 
@@ -302,10 +302,16 @@ flowchart LR
 
 ## Project Structure
 
+Azure DevOps files now live directly under `azure-pipeline/`.
+
+Azure DevOps paths:
+- `azure-pipeline/azure-pipelines.yml`
+- `azure-pipeline/terraform-job.yml`
+
 ```text
 Terraform-EBStalk/
-├── azure-pipelines.yml          # CI/CD pipeline definition
-├── templates/
+├── azure-pipeline/
+│   ├── azure-pipelines.yml      # Azure DevOps pipeline definition
 │   └── terraform-job.yml        # Reusable pipeline template
 ├── providers.tf                 # AWS provider + Azure Blob backend
 ├── main.tf                      # Root module orchestration
@@ -330,6 +336,3 @@ Terraform-EBStalk/
 │   └── architecture.svg         # Architecture diagram (SVG)
 └── sample-app/                  # Sample Java application
 ```
-
-
-
