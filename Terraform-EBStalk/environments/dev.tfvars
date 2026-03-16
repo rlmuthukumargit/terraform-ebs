@@ -9,9 +9,12 @@ environment    = "dev"
 resource_prefix = "tss-ebs-dev"
 
 # --- VPC ---
-vpc_cidr             = "10.0.0.0/16"
-public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-private_subnet_cidrs = ["10.0.10.0/24", "10.0.20.0/24", "10.0.30.0/24"]
+vpc_id     = "vpc-xxxxxxxxxxxxxxxxx" # <-- Replace with your existing VPC ID
+subnet_ids = [
+  "subnet-11111111111111111", # <-- Replace with your existing Subnet IDs (3 required)
+  "subnet-22222222222222222",
+  "subnet-33333333333333333"
+]
 
 # --- Elastic Beanstalk ---
 app_name            = "tss-app"

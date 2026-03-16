@@ -11,9 +11,12 @@ resource_prefix = "my-app-qa"
 
 
 # --- VPC ---
-vpc_cidr             = "10.1.0.0/16"
-public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24"]
-private_subnet_cidrs = ["10.1.10.0/24", "10.1.20.0/24", "10.1.30.0/24"]
+vpc_id     = "vpc-xxxxxxxxxxxxxxxxx" # <-- Replace with your existing VPC ID
+subnet_ids = [
+  "subnet-11111111111111111", # <-- Replace with your existing Subnet IDs (3 required)
+  "subnet-22222222222222222",
+  "subnet-33333333333333333"
+]
 
 # --- Elastic Beanstalk ---
 app_name            = "my-app"

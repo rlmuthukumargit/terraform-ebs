@@ -11,17 +11,10 @@ module "s3" {
   manage_artifact_object = var.manage_artifact_object
 }
 
-# -----------------------------------------------------------------------------
-# 2. VPC (2-AZ, public + private subnets)
-# -----------------------------------------------------------------------------
-module "vpc" {
-  source = "./modules/vpc"
-
-  resource_prefix      = var.resource_prefix
-  environment          = var.environment
-  vpc_cidr             = var.vpc_cidr
-  public_subnet_cidrs  = var.public_subnet_cidrs
-  private_subnet_cidrs = var.private_subnet_cidrs
+locals {
+  vpc_id             = var.vpc_id
+  public_subnet_ids  = var.subnet_ids
+  private_subnet_ids = var.subnet_ids
 }
 
 # -----------------------------------------------------------------------------
@@ -33,7 +26,7 @@ module "security_groups" {
   resource_prefix   = var.resource_prefix
   app_name          = var.app_name
   environment       = var.environment
-  vpc_id            = module.vpc.vpc_id
+  vpc_id            = local.vpc_id
   alb_ingress_cidrs = var.alb_ingress_cidrs
   alb_listener_port = var.alb_listener_port
   app_port          = var.app_port
@@ -49,8 +42,8 @@ module "alb" {
   resource_prefix    = var.resource_prefix
   app_name           = var.app_name
   environment        = var.environment
-  vpc_id             = module.vpc.vpc_id
-  subnet_ids         = module.vpc.public_subnet_ids
+  vpc_id             = local.vpc_id
+  subnet_ids         = local.public_subnet_ids
   security_group_ids = [module.security_groups.alb_security_group_id]
   internal           = var.alb_scheme == "internal"
   certificate_arn    = var.alb_certificate_arn
@@ -88,9 +81,9 @@ module "elastic_beanstalk" {
   root_volume_size            = var.root_volume_size
 
   # VPC wiring
-  vpc_id             = module.vpc.vpc_id
-  public_subnet_ids  = module.vpc.public_subnet_ids
-  private_subnet_ids = module.vpc.private_subnet_ids
+  vpc_id             = local.vpc_id
+  public_subnet_ids  = local.public_subnet_ids
+  private_subnet_ids = local.private_subnet_ids
 
   # Custom security groups
   alb_security_group_ids      = [module.security_groups.alb_security_group_id]

@@ -37,18 +37,13 @@ variable "environment" {
 # =============================================================================
 # VPC / Networking
 # =============================================================================
-variable "vpc_cidr" {
-  description = "CIDR block for the VPC"
+variable "vpc_id" {
+  description = "ID of the existing VPC to use"
   type        = string
 }
 
-variable "public_subnet_cidrs" {
-  description = "CIDR blocks for public subnets (exactly 3)"
-  type        = list(string)
-}
-
-variable "private_subnet_cidrs" {
-  description = "CIDR blocks for private subnets (exactly 3)"
+variable "subnet_ids" {
+  description = "List of existing subnet IDs to use"
   type        = list(string)
 }
 
