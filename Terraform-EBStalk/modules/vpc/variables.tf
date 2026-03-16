@@ -22,8 +22,8 @@ variable "public_subnet_cidrs" {
   type        = list(string)
 
   validation {
-    condition     = length(var.public_subnet_cidrs) == 2
-    error_message = "Exactly 2 public subnet CIDRs are required for HA across 2 AZs."
+    condition     = length(var.public_subnet_cidrs) == 3
+    error_message = "Exactly 3 public subnet CIDRs are required for HA across 3 AZs."
   }
 }
 
@@ -32,7 +32,7 @@ variable "private_subnet_cidrs" {
   type        = list(string)
 
   validation {
-    condition     = length(var.private_subnet_cidrs) == 2
-    error_message = "Exactly 2 private subnet CIDRs are required for HA across 2 AZs."
+    condition     = length(var.private_subnet_cidrs) == 3
+    error_message = "Exactly 3 private subnet CIDRs are required for HA across 3 AZs."
   }
 }

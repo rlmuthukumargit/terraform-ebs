@@ -31,7 +31,7 @@ resource "aws_vpc" "this" {
 # Public Subnets (one per AZ — for ALB)
 # -----------------------------------------------------------------------------
 resource "aws_subnet" "public" {
-  count                   = 2
+  count                   = 3
   vpc_id                  = aws_vpc.this.id
   cidr_block              = var.public_subnet_cidrs[count.index]
   availability_zone       = data.aws_availability_zones.available.names[count.index]
@@ -52,7 +52,7 @@ resource "aws_subnet" "public" {
 # Private Subnets (one per AZ — for EC2 instances)
 # -----------------------------------------------------------------------------
 resource "aws_subnet" "private" {
-  count             = 2
+  count             = 3
   vpc_id            = aws_vpc.this.id
   cidr_block        = var.private_subnet_cidrs[count.index]
   availability_zone = data.aws_availability_zones.available.names[count.index]
@@ -132,7 +132,7 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  count          = 2
+  count          = 3
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
@@ -153,7 +153,7 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "private" {
-  count          = 2
+  count          = 3
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
 }

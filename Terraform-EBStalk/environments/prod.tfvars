@@ -12,8 +12,8 @@ resource_prefix = "my-app-prod"
 
 # --- VPC ---
 vpc_cidr             = "10.2.0.0/16"
-public_subnet_cidrs  = ["10.2.1.0/24", "10.2.2.0/24"]
-private_subnet_cidrs = ["10.2.10.0/24", "10.2.20.0/24"]
+public_subnet_cidrs  = ["10.2.1.0/24", "10.2.2.0/24", "10.2.3.0/24"]
+private_subnet_cidrs = ["10.2.10.0/24", "10.2.20.0/24", "10.2.30.0/24"]
 
 # --- Elastic Beanstalk ---
 app_name            = "my-app"
@@ -45,7 +45,7 @@ app_port          = 80
 
 # --- Elastic Beanstalk Environment Info ---
 # eb_environment_name         = "my-app-prod-env"
-eb_environment_cname_prefix = "myapp-prod-333333333333" # Domain: myapp-prod-333333333333.<region>.elasticbeanstalk.com
+eb_environment_cname_prefix = "my-app-prod" # Domain: my-app-prod.<region>.elasticbeanstalk.com
 # eb_environment_description  = "Production Elastic Beanstalk environment"
 
 # --- ALB + EB App Environment Variables ---
