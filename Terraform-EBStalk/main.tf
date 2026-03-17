@@ -85,6 +85,13 @@ module "elastic_beanstalk" {
 
   # Logging
   log_retention_days = var.log_retention_days
+
+  # Ensure EB is created after all supporting infra
+  depends_on = [
+    module.security_groups,
+    module.iam_roles,
+    module.alb
+  ]
 }
 
 # -----------------------------------------------------------------------------
