@@ -25,10 +25,6 @@ instance_type       = "t3.medium"
 min_instances       = 2
 max_instances       = 6
 
-# --- S3 Application Source ---
-# app_s3_bucket     = "my-app-artifacts-prod"  # <-- Managed by Terraform module now
-app_source_file   = "./app/my-app-v1.jar" # <-- Update path if JAR is somewhere else
-app_s3_key        = "releases/my-app-v1.jar" # <-- Replace with your JAR/WAR target pattern
 app_version_label = "v1"
 
 # --- Logging ---

@@ -75,15 +75,6 @@ variable "instance_security_group_ids" {
 }
 
 # ------- S3 App Source -------
-variable "app_s3_bucket" {
-  description = "S3 bucket containing the application JAR/WAR artifact"
-  type        = string
-}
-
-variable "app_s3_key" {
-  description = "S3 object key for the application JAR/WAR artifact"
-  type        = string
-}
 
 variable "app_version_label" {
   description = "Version label for the application version"

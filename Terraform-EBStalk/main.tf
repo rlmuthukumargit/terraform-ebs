@@ -1,16 +1,3 @@
-# -----------------------------------------------------------------------------
-# 1. Managed S3 Artifact Bucket
-# -----------------------------------------------------------------------------
-module "s3" {
-  source = "./modules/s3"
-
-  resource_prefix        = var.resource_prefix
-  environment            = var.environment
-  app_source_file        = var.app_source_file
-  app_s3_key             = var.app_s3_key
-  manage_artifact_object = var.manage_artifact_object
-}
-
 locals {
   vpc_id             = var.vpc_id
   public_subnet_ids  = var.subnet_ids
@@ -96,13 +83,22 @@ module "elastic_beanstalk" {
   # Shared ALB — pass ARN if enabled, empty string if disabled (EB manages own)
   shared_alb_arn = var.enable_shared_alb ? module.alb[0].alb_arn : ""
 
-  # S3 app source — managed by our S3 module
-  app_s3_bucket     = module.s3.bucket_id
-  app_s3_key        = module.s3.object_key     # Forms an implicit dependency on the aws_s3_object resource
-  app_version_label = var.app_version_label
-
   # Logging
   log_retention_days = var.log_retention_days
+}
+
+# -----------------------------------------------------------------------------
+# 6b. EB CLI Deployment (Triggered on version change)
+# -----------------------------------------------------------------------------
+resource "terraform_data" "eb_deploy" {
+  input = var.app_version_label
+
+  provisioner "local-exec" {
+    command     = "eb deploy"
+    working_dir = "${path.module}/app"
+  }
+
+  depends_on = [module.elastic_beanstalk]
 }
 
 # -----------------------------------------------------------------------------

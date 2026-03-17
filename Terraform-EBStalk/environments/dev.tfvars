@@ -25,9 +25,6 @@ max_instances       = 2
 root_volume_size    = 20
 
 # --- S3 Application Source ---
-# app_s3_bucket     = "tss-app-artifacts-dev-911287867452"   # <-- Managed by Terraform module now
-app_source_file   = "./app/my-app-v1.jar" # <-- Update path if JAR is somewhere else
-app_s3_key        = "releases/my-app-v1.jar" # <-- Replace with your JAR/WAR target pattern
 app_version_label = "v1"
 
 # --- Logging ---
@@ -61,4 +58,3 @@ enable_shared_alb = true
 # alb_certificate_arn = ""  # Optional: ACM cert ARN for HTTPS
 
 # --- CI/CD Readiness ---
-# manage_artifact_object = false # Set to false if Azure DevOps uploads the JAR directly to S3

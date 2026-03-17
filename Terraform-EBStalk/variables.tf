@@ -114,16 +114,6 @@ variable "root_volume_size" {
 #   type        = string
 # }
 
-variable "app_source_file" {
-  description = "Path to the local application JAR/WAR artifact to upload"
-  type        = string
-}
-
-variable "app_s3_key" {
-  description = "S3 object key for the application JAR/WAR"
-  type        = string
-}
-
 variable "app_version_label" {
   description = "Version label for the EB application version"
   type        = string
@@ -225,9 +215,4 @@ variable "alb_certificate_arn" {
   default     = ""
 }
 
-variable "manage_artifact_object" {
-  description = "Whether Terraform should manage the application artifact S3 object. Set to false if using external CI/CD tool to upload."
-  type        = bool
-  default     = true
-}
 

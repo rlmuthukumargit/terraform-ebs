@@ -25,10 +25,6 @@ instance_type       = "t3.small"
 min_instances       = 2
 max_instances       = 4
 
-# --- S3 Application Source ---
-# app_s3_bucket     = "my-app-artifacts-qa"    # <-- Managed by Terraform module now
-app_source_file   = "./app/my-app-v1.jar" # <-- Update path if JAR is somewhere else
-app_s3_key        = "releases/my-app-v1.jar" # <-- Replace with your JAR/WAR target pattern
 app_version_label = "v1"
 
 # --- Logging ---
@@ -60,3 +56,4 @@ eb_environment_variables = {
 # --- Shared ALB (set to true to share one ALB across multiple apps) ---
 enable_shared_alb = true
 # alb_certificate_arn = ""  # Optional: ACM cert ARN for HTTPS
+

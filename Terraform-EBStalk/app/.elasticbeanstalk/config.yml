@@ -1,0 +1,16 @@
+global:
+  application_name: tss-app
+  branch: null
+  default_ec2_keyname: null
+  default_platform: 64bit Amazon Linux 2023 v4.10.0 running Corretto 21
+  default_region: us-east-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: null
+  repository: null
+  sc: null
+  workspace_type: Application
+deploy:
+  artifact: artifact.zip

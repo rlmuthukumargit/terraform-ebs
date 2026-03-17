@@ -29,35 +29,6 @@ resource "aws_elastic_beanstalk_application" "this" {
 }
 
 # -----------------------------------------------------------------------------
-# Application Version — sourced from S3 bucket (JAR / WAR)
-# -----------------------------------------------------------------------------
-resource "aws_elastic_beanstalk_application_version" "this" {
-  name        = "${var.resource_prefix}-${var.app_version_label}"
-  application = aws_elastic_beanstalk_application.this.name
-  description = "Version ${var.app_version_label} deployed from s3://${var.app_s3_bucket}/${var.app_s3_key}"
-  bucket      = var.app_s3_bucket
-  key         = var.app_s3_key
-
-  # IMPORTANT: Elastic Beanstalk needs the physical object to exist in S3 before this resource is created
-  # We use the key to imply a dependency, but an explicit depends_on is safer here if passed through root
-  # However, Terraform requires depends_on to be based on module outputs or directly passed resources.
-  # Since app_s3_key and app_s3_bucket are now output from the S3 module, passing them creates an implicit dependency.
-
-  tags = {
-    Name        = "${var.resource_prefix}-${var.app_version_label}"
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
-
-  lifecycle {
-    ignore_changes = [
-      tags,
-      tags_all
-    ]
-  }
-}
-
-# -----------------------------------------------------------------------------
 # Elastic Beanstalk Environment — LoadBalanced, ALB, Auto Scaling
 # -----------------------------------------------------------------------------
 locals {
@@ -69,7 +40,6 @@ resource "aws_elastic_beanstalk_environment" "this" {
   name                = local.eb_environment_name
   application         = aws_elastic_beanstalk_application.this.name
   solution_stack_name = var.solution_stack_name
-  version_label       = aws_elastic_beanstalk_application_version.this.name
   tier                = "WebServer"
   description         = local.eb_environment_description
   cname_prefix        = local.eb_cname_prefix != "" ? local.eb_cname_prefix : null

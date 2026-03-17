@@ -44,5 +44,5 @@ output "load_balancers" {
 
 output "app_version" {
   description = "Currently deployed application version label"
-  value       = aws_elastic_beanstalk_application_version.this.name
+  value       = var.create_app_version ? aws_elastic_beanstalk_application_version.this[0].name : "sample-app"
 }
