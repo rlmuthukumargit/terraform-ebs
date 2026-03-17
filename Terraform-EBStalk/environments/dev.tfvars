@@ -9,11 +9,11 @@ environment    = "dev"
 resource_prefix = "tss-ebs-dev"
 
 # --- VPC ---
-vpc_id     = "vpc-xxxxxxxxxxxxxxxxx" # <-- Replace with your existing VPC ID
+vpc_id     = "vpc-0975e41529fdd220e" # <-- Replace with your existing VPC ID
 subnet_ids = [
-  "subnet-11111111111111111", # <-- Replace with your existing Subnet IDs (3 required)
-  "subnet-22222222222222222",
-  "subnet-33333333333333333"
+  "subnet-0db123d54c271e391", # <-- Replace with your existing Subnet IDs (3 required)
+  "subnet-07f28a28b8830044b",
+  "subnet-0b17ab8abf3a8b378"
 ]
 
 # --- Elastic Beanstalk ---

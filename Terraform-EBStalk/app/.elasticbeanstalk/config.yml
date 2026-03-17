@@ -1,5 +1,5 @@
 global:
-  application_name: tss-app
+  application_name: tss-ebs-dev
   branch: null
   default_ec2_keyname: null
   default_platform: 64bit Amazon Linux 2023 v4.10.0 running Corretto 21
@@ -12,5 +12,3 @@ global:
   repository: null
   sc: null
   workspace_type: Application
-deploy:
-  artifact: artifact.zip

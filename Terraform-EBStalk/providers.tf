@@ -18,8 +18,8 @@ terraform {
   }
 
   # ---------------------------------------------------------------------------
-  # Local backend for manual CLI runs.
-  # backend "s3" {}
+  # S3 backend for remote state storage and locking.
+  backend "s3" {}
 }
 
 # -----------------------------------------------------------------------------

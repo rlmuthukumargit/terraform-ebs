@@ -1,3 +1,4 @@
-bucket = "<TF_STATE_S3_BUCKET>"   # <-- Replace with your AWS S3 bucket name
-key    = "ebs/qa/terraform.tfstate"
-region = "<AWS_REGION>"           # <-- Replace with your AWS region (e.g. us-east-1)
+bucket         = "tss-ebstalk-terraform-backend"
+key            = "qa/terraform.tfstate"
+region         = "us-east-1"
+dynamodb_table = "tss-qa-table"

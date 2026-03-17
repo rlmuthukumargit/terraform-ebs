@@ -1,0 +1,7 @@
+src/
+pom.xml
+# Exclude extra JARs, only app.jar should be uploaded
+my-app-v*.jar
+.elasticbeanstalk/
+.gitignore
+.ebignore
