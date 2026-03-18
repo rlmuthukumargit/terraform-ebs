@@ -48,6 +48,20 @@ module "iam_roles" {
 }
 
 # -----------------------------------------------------------------------------
+# 6b. Pre-Bootstrap Artifact Upload
+# Packages and uploads the app to the default EB S3 bucket BEFORE environment creation.
+# This ensures the environment launches with correct code from the start.
+# -----------------------------------------------------------------------------
+resource "terraform_data" "pre_bootstrap" {
+  input = var.app_version_label
+
+  provisioner "local-exec" {
+    command     = "powershell -ExecutionPolicy Bypass -File package-app.ps1 -VersionLabel ${var.app_version_label} -AppName ${var.resource_prefix}"
+    working_dir = "${path.module}/app"
+  }
+}
+
+# -----------------------------------------------------------------------------
 # 6. Elastic Beanstalk (App + Version from S3 + Environment with ALB & ASG)
 # -----------------------------------------------------------------------------
 module "elastic_beanstalk" {
@@ -80,33 +94,25 @@ module "elastic_beanstalk" {
   ec2_instance_profile_name = module.iam_roles.ec2_instance_profile_name
   eb_service_role_arn       = module.iam_roles.eb_service_role_arn
 
-  # Shared ALB — pass ARN if enabled, empty string if disabled (EB manages own)
+  # Shared ALB
   shared_alb_arn = var.enable_shared_alb ? module.alb[0].alb_arn : ""
 
-  # Logging
-  log_retention_days = var.log_retention_days
+  # Version info
+  app_version_label = var.app_version_label
 
-  # Ensure EB is created after all supporting infra
+  # Ensure EB is created after all supporting infra AND the artifact upload
   depends_on = [
     module.security_groups,
     module.iam_roles,
-    module.alb
+    module.alb,
+    terraform_data.pre_bootstrap
   ]
 }
 
 # -----------------------------------------------------------------------------
-# 6b. EB CLI Deployment (Triggered on version change)
+# 6c. EB CLI Deployment (Redundant now that we bootstrap with the correct version)
 # -----------------------------------------------------------------------------
-resource "terraform_data" "eb_deploy" {
-  input = var.app_version_label
-
-  provisioner "local-exec" {
-    command     = "eb deploy"
-    working_dir = "${path.module}/app"
-  }
-
-  depends_on = [module.elastic_beanstalk]
-}
+# resource "terraform_data" "eb_deploy" { ... }
 
 # -----------------------------------------------------------------------------
 # 7. CloudWatch Alarms (CPU, Unhealthy Hosts, Latency, EB Health)

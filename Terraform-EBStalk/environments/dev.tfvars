@@ -6,7 +6,7 @@
 aws_region     = "us-east-1"
 aws_account_id = "911287867452" # <-- Replace with your dev AWS account ID
 environment    = "dev"
-resource_prefix = "tss-ebs-dev"
+resource_prefix = "tss-ebs-dev-new"
 
 # --- VPC ---
 vpc_id     = "vpc-0975e41529fdd220e" # <-- Replace with your existing VPC ID
@@ -19,7 +19,7 @@ subnet_ids = [
 # --- Elastic Beanstalk ---
 app_name            = "tss-app"
 solution_stack_name = "64bit Amazon Linux 2023 v4.10.0 running Corretto 21"
-instance_type       = "t3.micro"
+instance_type       = "t3.medium"
 min_instances       = 1
 max_instances       = 2
 root_volume_size    = 20

@@ -41,6 +41,7 @@ resource "aws_elastic_beanstalk_environment" "this" {
   application         = aws_elastic_beanstalk_application.this.name
   solution_stack_name = var.solution_stack_name
   tier                = "WebServer"
+  version_label       = var.app_version_label
   description         = local.eb_environment_description
   cname_prefix        = local.eb_cname_prefix != "" ? local.eb_cname_prefix : null
 
@@ -315,6 +316,23 @@ resource "aws_elastic_beanstalk_environment" "this" {
   }
 
   # ---------------------------------------------------------------------------
+  # Isolated VPC Bootstrap Bypass
+  # Allows the environment to finalize creation even if the default sample app
+  # deployment fails (which happens due to lack of internet for Maven).
+  # ---------------------------------------------------------------------------
+  setting {
+    namespace = "aws:elasticbeanstalk:command"
+    name      = "IgnoreCondition"
+    value     = "true"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:command"
+    name      = "Timeout"
+    value     = "600"
+  }
+
+  # ---------------------------------------------------------------------------
   # CloudWatch Logs streaming
   # ---------------------------------------------------------------------------
   setting {
@@ -340,5 +358,222 @@ resource "aws_elastic_beanstalk_environment" "this" {
     Environment = var.environment
     ManagedBy   = "terraform"
   }
+
+  # Ensure instances can communicate with EB service immediately on launch
+  depends_on = [
+    aws_vpc_endpoint.eb,
+    aws_vpc_endpoint.eb_health,
+    aws_vpc_endpoint.sqs,
+    aws_vpc_endpoint.sts,
+    aws_vpc_endpoint.ec2,
+    aws_vpc_endpoint.logs,
+    aws_vpc_endpoint.ssm,
+    aws_vpc_endpoint.ssmmessages,
+    aws_vpc_endpoint.ec2messages,
+    aws_vpc_endpoint.autoscaling,
+    aws_vpc_endpoint.monitoring,
+    aws_vpc_endpoint.cloudformation,
+    aws_vpc_endpoint.s3
+  ]
+}
+
+# -----------------------------------------------------------------------------
+# VPC Endpoints for Internal Connectivity
+# Required for instances in private subnets to reach EB service without NAT/Public IP
+# -----------------------------------------------------------------------------
+
+resource "aws_security_group" "vpc_endpoints" {
+  name        = "${var.resource_prefix}-vpce-sg"
+  description = "Security group for VPC Endpoints"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [data.aws_vpc.selected.cidr_block]
+  }
+
+  tags = {
+    Name        = "${var.resource_prefix}-vpce-sg"
+    Environment = var.environment
+  }
+}
+
+resource "aws_vpc_endpoint" "eb" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.elasticbeanstalk"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-eb-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "eb_health" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.elasticbeanstalk-health"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-eb-health-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "sqs" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.sqs"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-sqs-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "sts" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.sts"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-sts-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "ec2" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ec2"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-ec2-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "logs" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.logs"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-logs-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ssm"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-ssm-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "ssmmessages" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ssmmessages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-ssm-msg-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "ec2messages" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ec2messages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-ec2-msg-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "autoscaling" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.autoscaling"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-asg-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "monitoring" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.monitoring"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-monitoring-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "cloudformation" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.cloudformation"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = var.private_subnet_ids
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.resource_prefix}-cfn-vpce"
+  }
+}
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = var.vpc_id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = data.aws_route_tables.all.ids
+
+  tags = {
+    Name = "${var.resource_prefix}-s3-vpce"
+  }
+}
+
+data "aws_region" "current" {}
+
+data "aws_route_tables" "all" {
+  vpc_id = var.vpc_id
+}
+
+data "aws_vpc" "selected" {
+  id = var.vpc_id
 }
 
