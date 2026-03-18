@@ -29,6 +29,23 @@ resource "aws_elastic_beanstalk_application" "this" {
 }
 
 # -----------------------------------------------------------------------------
+# Elastic Beanstalk Application Version
+# -----------------------------------------------------------------------------
+resource "aws_elastic_beanstalk_application_version" "this" {
+  count       = var.app_s3_bucket != "" && var.app_s3_key != "" ? 1 : 0
+  name        = var.app_version_label
+  application = aws_elastic_beanstalk_application.this.name
+  description = "Application version ${var.app_version_label}"
+  bucket      = var.app_s3_bucket
+  key         = var.app_s3_key
+
+  tags = {
+    Name        = var.app_version_label
+    Environment = var.environment
+  }
+}
+
+# -----------------------------------------------------------------------------
 # Elastic Beanstalk Environment — LoadBalanced, ALB, Auto Scaling
 # -----------------------------------------------------------------------------
 locals {
@@ -373,7 +390,8 @@ resource "aws_elastic_beanstalk_environment" "this" {
     aws_vpc_endpoint.autoscaling,
     aws_vpc_endpoint.monitoring,
     aws_vpc_endpoint.cloudformation,
-    aws_vpc_endpoint.s3
+    aws_vpc_endpoint.s3,
+    aws_elastic_beanstalk_application_version.this
   ]
 }
 

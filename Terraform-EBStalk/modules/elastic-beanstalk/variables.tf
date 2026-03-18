@@ -82,6 +82,18 @@ variable "app_version_label" {
   default     = "v1"
 }
 
+variable "app_s3_bucket" {
+  description = "S3 bucket containing the application ZIP bundle"
+  type        = string
+  default     = ""
+}
+
+variable "app_s3_key" {
+  description = "S3 key for the application ZIP bundle"
+  type        = string
+  default     = ""
+}
+
 variable "app_version_max_count" {
   description = "Maximum number of application versions to retain"
   type        = number

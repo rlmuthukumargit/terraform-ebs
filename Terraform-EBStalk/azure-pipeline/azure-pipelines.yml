@@ -1,80 +1,61 @@
-# Azure DevOps Pipeline for Spring Boot on Elastic Beanstalk
-pool:
-  vmImage: 'ubuntu-latest'
+# Azure DevOps Pipeline for Multi-Environment Elastic Beanstalk Deployment
+# This pipeline uses the terraform-job.yml template for consistent deployments.
+
+trigger:
+  - main
+  - develop
+  - release/*
 
 variables:
-  - name: buildConfiguration
-    value: 'Release'
-  - group: aws-credentials # Variable group containing AWS access keys or Role names
+  - group: aws-credentials 
+  - name: terraformVersion
+    value: '1.9.0'
+  - name: workingDirectory
+    value: '.'
 
 stages:
-- stage: Build
-  displayName: Build and Package
-  jobs:
-  - job: Build
-    steps:
-    - task: JAVA_TOOL_INSTALLER@0
-      inputs:
-        version: '21'
-        jdkSource: 'PreInstalled'
-        jdkArchitecture: 'x64'
-
-    - task: Maven@3
-      inputs:
-        mavenPomFile: 'app/pom.xml'
-        options: '-DskipTests'
-        publishJUnitResults: true
-        testResultsFiles: '**/surefire-reports/TEST-*.xml'
-        javaHomeOption: 'JDKVersion'
-        mavenVersionOption: 'Default'
-        mavenAuthenticateFeed: false
-        effectivePomSkip: false
-        sonarQubeRunAnalysis: false
-
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: '$(system.defaultworkingdirectory)/app/target'
-        Contents: '*.jar'
-        TargetFolder: '$(build.artifactstagingdirectory)'
-
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(build.artifactstagingdirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
-
 - stage: DeployDev
-  displayName: Deploy to Dev
-  dependsOn: Build
+  displayName: "Deploy to Dev"
+  jobs:
+  - template: terraform-job.yml
+    parameters:
+      environment: 'dev'
+      awsServiceConnection: 'aws-dev-oidc'
+      awsRegion: 'us-east-1'
+      appS3Bucket: 'tss-ebs-dev-artifacts-$(AWS_ACCOUNT_ID)'
+      tfVarsFile: 'environments/dev.tfvars'
+      terraformVersion: '$(terraformVersion)'
+      workingDirectory: '$(workingDirectory)'
+      externalRepoUrl: 'github.com/your-org/external-app-repo' # REPLACE with actual repo URL
+
+- stage: DeployQA
+  displayName: "Deploy to QA"
+  dependsOn: DeployDev
   condition: succeeded()
   jobs:
-  - job: Deploy
-    steps:
-    - task: DownloadBuildArtifacts@0
-      inputs:
-        buildType: 'current'
-        downloadType: 'single'
-        artifactName: 'drop'
-        downloadPath: '$(System.ArtifactsDirectory)'
+  - template: terraform-job.yml
+    parameters:
+      environment: 'qa'
+      awsServiceConnection: 'aws-qa-oidc'
+      awsRegion: 'us-east-1'
+      appS3Bucket: 'tss-ebs-qa-artifacts-$(AWS_ACCOUNT_ID)'
+      tfVarsFile: 'environments/qa.tfvars'
+      terraformVersion: '$(terraformVersion)'
+      workingDirectory: '$(workingDirectory)'
+      externalRepoUrl: 'github.com/your-org/external-app-repo' # REPLACE with actual repo URL
 
-    # Assuming Terraform is used to provision/update
-    # or AWS CLI is used to upload to S3 and update EB
-    - task: S3Upload@1
-      inputs:
-        awsCredentials: 'aws-service-connection'
-        regionName: 'us-east-1'
-        bucketName: 'tss-ebs-dev-artifacts-$(AWS_ACCOUNT_ID)'
-        sourceFolder: '$(System.ArtifactsDirectory)/drop'
-        globExpressions: '*.jar'
-        targetFolder: 'releases'
-
-    - task: BeanstalkDeploy@2
-      inputs:
-        awsCredentials: 'aws-service-connection'
-        regionName: 'us-east-1'
-        applicationName: 'tss-app'
-        environmentName: 'tss-app-dev-env'
-        applicationType: 'zip'
-        deploymentBundle: '$(System.ArtifactsDirectory)/drop/*.jar'
-        versionLabel: '$(Build.BuildId)'
-
+- stage: DeployProd
+  displayName: "Deploy to Prod"
+  dependsOn: DeployQA
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - template: terraform-job.yml
+    parameters:
+      environment: 'prod'
+      awsServiceConnection: 'aws-prod-oidc'
+      awsRegion: 'us-east-1'
+      appS3Bucket: 'tss-ebs-prod-artifacts-$(AWS_ACCOUNT_ID)'
+      tfVarsFile: 'environments/prod.tfvars'
+      terraformVersion: '$(terraformVersion)'
+      workingDirectory: '$(workingDirectory)'
+      externalRepoUrl: 'github.com/your-org/external-app-repo' # REPLACE with actual repo URL

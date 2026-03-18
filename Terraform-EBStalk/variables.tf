@@ -32,6 +32,12 @@ variable "environment" {
   }
 }
 
+variable "tags" {
+  description = "A mapping of tags to assign to the resource"
+  type        = map(string)
+  default     = {}
+}
+
 
 
 # =============================================================================
@@ -109,10 +115,16 @@ variable "root_volume_size" {
 # =============================================================================
 # S3 Application Source
 # =============================================================================
-# variable "app_s3_bucket" {
-#   description = "S3 bucket containing the application JAR/WAR"
-#   type        = string
-# }
+variable "app_s3_bucket" {
+  description = "S3 bucket containing the application JAR/WAR"
+  type        = string
+}
+
+variable "app_s3_key" {
+  description = "S3 key (path) for the application ZIP bundle"
+  type        = string
+  default     = ""
+}
 
 variable "app_version_label" {
   description = "Version label for the EB application version"

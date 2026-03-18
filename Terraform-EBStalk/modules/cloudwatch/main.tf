@@ -89,7 +89,7 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_hosts" {
   dimensions = var.target_group_arn_suffix != "" ? {
     TargetGroup  = var.target_group_arn_suffix
     LoadBalancer = var.alb_arn_suffix
-  } : {
+    } : {
     LoadBalancer = var.alb_arn_suffix
   }
 

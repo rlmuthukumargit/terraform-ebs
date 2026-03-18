@@ -3,15 +3,15 @@
 ################################################################################
 
 # --- General ---
-aws_region     = "us-east-1"
-aws_account_id = "222222222222" # <-- Replace with your QA AWS account ID
-environment    = "qa"
+aws_region      = "us-east-1"
+aws_account_id  = "222222222222" # <-- Replace with your QA AWS account ID
+environment     = "qa"
 resource_prefix = "my-app-qa"
 
 
 
 # --- VPC ---
-vpc_id     = "vpc-xxxxxxxxxxxxxxxxx" # <-- Replace with your existing VPC ID
+vpc_id = "vpc-xxxxxxxxxxxxxxxxx" # <-- Replace with your existing VPC ID
 subnet_ids = [
   "subnet-11111111111111111", # <-- Replace with your existing Subnet IDs (3 required)
   "subnet-22222222222222222",

@@ -48,17 +48,15 @@ module "iam_roles" {
 }
 
 # -----------------------------------------------------------------------------
-# 6b. Pre-Bootstrap Artifact Upload
-# Packages and uploads the app to the default EB S3 bucket BEFORE environment creation.
-# This ensures the environment launches with correct code from the start.
+# 6b. S3 Bucket for App Artifacts
 # -----------------------------------------------------------------------------
-resource "terraform_data" "pre_bootstrap" {
-  input = var.app_version_label
+module "s3" {
+  count  = var.app_s3_bucket != "" ? 1 : 0
+  source = "./modules/s3"
 
-  provisioner "local-exec" {
-    command     = "powershell -ExecutionPolicy Bypass -File package-app.ps1 -VersionLabel ${var.app_version_label} -AppName ${var.resource_prefix}"
-    working_dir = "${path.module}/app"
-  }
+  bucket_name = var.app_s3_bucket
+  environment = var.environment
+  tags        = var.tags
 }
 
 # -----------------------------------------------------------------------------
@@ -99,13 +97,15 @@ module "elastic_beanstalk" {
 
   # Version info
   app_version_label = var.app_version_label
+  app_s3_bucket     = var.app_s3_bucket
+  app_s3_key        = var.app_s3_key
 
-  # Ensure EB is created after all supporting infra AND the artifact upload
+  # Ensure EB is created after all supporting infra
   depends_on = [
     module.security_groups,
     module.iam_roles,
     module.alb,
-    terraform_data.pre_bootstrap
+    module.s3
   ]
 }
 

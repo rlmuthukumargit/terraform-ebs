@@ -3,15 +3,15 @@
 ################################################################################
 
 # --- General ---
-aws_region     = "us-east-1"
-aws_account_id = "333333333333" # <-- Replace with your PROD AWS account ID
-environment    = "prod"
+aws_region      = "us-east-1"
+aws_account_id  = "333333333333" # <-- Replace with your PROD AWS account ID
+environment     = "prod"
 resource_prefix = "my-app-prod"
 
 
 
 # --- VPC ---
-vpc_id     = "vpc-xxxxxxxxxxxxxxxxx" # <-- Replace with your existing VPC ID
+vpc_id = "vpc-xxxxxxxxxxxxxxxxx" # <-- Replace with your existing VPC ID
 subnet_ids = [
   "subnet-11111111111111111", # <-- Replace with your existing Subnet IDs (3 required)
   "subnet-22222222222222222",

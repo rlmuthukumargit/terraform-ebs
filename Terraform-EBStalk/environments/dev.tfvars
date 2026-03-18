@@ -3,13 +3,13 @@
 ################################################################################
 
 # --- General ---
-aws_region     = "us-east-1"
-aws_account_id = "911287867452" # <-- Replace with your dev AWS account ID
-environment    = "dev"
+aws_region      = "us-east-1"
+aws_account_id  = "911287867452" # <-- Replace with your dev AWS account ID
+environment     = "dev"
 resource_prefix = "tss-ebs-dev-new"
 
 # --- VPC ---
-vpc_id     = "vpc-0975e41529fdd220e" # <-- Replace with your existing VPC ID
+vpc_id = "vpc-0975e41529fdd220e" # <-- Replace with your existing VPC ID
 subnet_ids = [
   "subnet-0db123d54c271e391", # <-- Replace with your existing Subnet IDs (3 required)
   "subnet-07f28a28b8830044b",
@@ -26,6 +26,7 @@ root_volume_size    = 20
 
 # --- S3 Application Source ---
 app_version_label = "v1"
+app_s3_bucket     = "tss-ebs-dev-artifacts-111111111111" # Replace 111111111111 with your actual AWS Account ID
 
 # --- Logging ---
 log_retention_days = 14
