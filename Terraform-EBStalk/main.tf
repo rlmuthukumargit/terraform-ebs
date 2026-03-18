@@ -60,6 +60,22 @@ module "s3" {
 }
 
 # -----------------------------------------------------------------------------
+# 6c. Manual Artifact Upload (Optional)
+# Automates 'aws s3 cp' during local terraform apply if app.zip exists.
+# -----------------------------------------------------------------------------
+resource "terraform_data" "manual_upload" {
+  count = var.app_s3_bucket != "" && var.app_s3_key != "" ? 1 : 0
+  input = var.app_s3_key # Triggers only when the key changes
+
+  provisioner "local-exec" {
+    command = "if (Test-Path 'app.zip') { aws s3 cp 'app.zip' 's3://${var.app_s3_bucket}/${var.app_s3_key}' } else { Write-Host 'app.zip not found, skipping manual upload' }"
+    interpreter = ["powershell", "-Command"]
+  }
+
+  depends_on = [module.s3]
+}
+
+# -----------------------------------------------------------------------------
 # 6. Elastic Beanstalk (App + Version from S3 + Environment with ALB & ASG)
 # -----------------------------------------------------------------------------
 module "elastic_beanstalk" {
@@ -100,12 +116,13 @@ module "elastic_beanstalk" {
   app_s3_bucket     = var.app_s3_bucket
   app_s3_key        = var.app_s3_key
 
-  # Ensure EB is created after all supporting infra
+  # Ensure EB is created after all supporting infra and potential upload
   depends_on = [
     module.security_groups,
     module.iam_roles,
     module.alb,
-    module.s3
+    module.s3,
+    terraform_data.manual_upload
   ]
 }
 
