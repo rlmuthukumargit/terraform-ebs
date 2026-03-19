@@ -58,7 +58,7 @@ resource "aws_elastic_beanstalk_environment" "this" {
   application         = aws_elastic_beanstalk_application.this.name
   solution_stack_name = var.solution_stack_name
   tier                = "WebServer"
-  version_label       = var.app_version_label
+  version_label       = length(aws_elastic_beanstalk_application_version.this) > 0 ? aws_elastic_beanstalk_application_version.this[0].name : var.app_version_label
   description         = local.eb_environment_description
   cname_prefix        = local.eb_cname_prefix != "" ? local.eb_cname_prefix : null
 

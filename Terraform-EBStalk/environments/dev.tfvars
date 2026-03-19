@@ -26,7 +26,8 @@ root_volume_size    = 20
 
 # --- S3 Application Source ---
 app_version_label = "v1"
-app_s3_bucket     = "tss-ebs-dev-artifacts-111111111111" # Replace 111111111111 with your actual AWS Account ID
+app_s3_bucket     = "tss-ebs-dev-artifacts-replace-with-account-id" 
+app_s3_key        = "releases/app-v1.zip" # Path to your ZIP file in S3
 
 # --- Logging ---
 log_retention_days = 14
