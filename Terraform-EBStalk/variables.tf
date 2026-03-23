@@ -126,6 +126,12 @@ variable "app_s3_key" {
   default     = ""
 }
 
+variable "app_local_path" {
+  description = "Local path to the application ZIP file for automated upload"
+  type        = string
+  default     = "app.zip"
+}
+
 variable "app_version_label" {
   description = "Version label for the EB application version"
   type        = string

@@ -59,18 +59,12 @@ module "s3" {
   tags        = var.tags
 }
 
-# -----------------------------------------------------------------------------
-# 6c. Manual Artifact Upload (Optional)
-# Automates 'aws s3 cp' during local terraform apply if app.zip exists.
-# -----------------------------------------------------------------------------
-resource "terraform_data" "manual_upload" {
-  count = var.app_s3_bucket != "" && var.app_s3_key != "" ? 1 : 0
-  input = var.app_s3_key # Triggers only when the key changes
-
-  provisioner "local-exec" {
-    command = "if (Test-Path 'app.zip') { aws s3 cp 'app.zip' 's3://${var.app_s3_bucket}/${var.app_s3_key}' } else { Write-Host 'app.zip not found, skipping manual upload' }"
-    interpreter = ["powershell", "-Command"]
-  }
+resource "aws_s3_object" "app_artifact" {
+  count  = var.app_s3_bucket != "" && var.app_s3_key != "" ? 1 : 0
+  bucket = var.app_s3_bucket
+  key    = var.app_s3_key
+  source = var.app_local_path
+  etag   = fileexists(var.app_local_path) ? filemd5(var.app_local_path) : null
 
   depends_on = [module.s3]
 }
@@ -109,7 +103,7 @@ module "elastic_beanstalk" {
   eb_service_role_arn       = module.iam_roles.eb_service_role_arn
 
   # Shared ALB
-  shared_alb_arn = var.enable_shared_alb ? module.alb[0].alb_arn : ""
+  shared_alb_arn   = var.enable_shared_alb ? module.alb[0].alb_arn : ""
 
   # Version info
   app_version_label = var.app_version_label
@@ -122,7 +116,7 @@ module "elastic_beanstalk" {
     module.iam_roles,
     module.alb,
     module.s3,
-    terraform_data.manual_upload
+    aws_s3_object.app_artifact
   ]
 }
 
@@ -140,8 +134,8 @@ module "cloudwatch" {
   resource_prefix         = var.resource_prefix
   environment             = var.environment
   autoscaling_group_name  = module.elastic_beanstalk.autoscaling_groups[0]
-  alb_arn_suffix          = module.elastic_beanstalk.load_balancers[0]
-  target_group_arn_suffix = var.target_group_arn_suffix
+  alb_arn_suffix          = var.enable_shared_alb ? module.alb[0].alb_arn_suffix : module.elastic_beanstalk.load_balancers[0]
+  target_group_arn_suffix = var.target_group_arn_suffix # Use variable (blank for dev auto)
   eb_environment_name     = module.elastic_beanstalk.environment_name
 
   # Thresholds

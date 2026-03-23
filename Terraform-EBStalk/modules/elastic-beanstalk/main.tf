@@ -138,6 +138,18 @@ resource "aws_elastic_beanstalk_environment" "this" {
     }
   }
 
+  # --- Shared ALB Listener Logic ---
+  # If using a Shared ALB, we need to tell EB which listener to use.
+  # EB will automatically create a target group for the default process.
+  dynamic "setting" {
+    for_each = var.shared_alb_arn != "" ? [1] : []
+    content {
+      namespace = "aws:elbv2:listener:default"
+      name      = "ListenerEnabled"
+      value     = "true"
+    }
+  }
+
   setting {
     namespace = "aws:elasticbeanstalk:environment"
     name      = "ServiceRole"
@@ -317,7 +329,7 @@ resource "aws_elastic_beanstalk_environment" "this" {
   setting {
     namespace = "aws:elasticbeanstalk:command"
     name      = "DeploymentPolicy"
-    value     = "Rolling"
+    value     = "Immutable"
   }
 
   setting {
@@ -416,6 +428,10 @@ resource "aws_security_group" "vpc_endpoints" {
     Name        = "${var.resource_prefix}-vpce-sg"
     Environment = var.environment
   }
+
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 resource "aws_vpc_endpoint" "eb" {
@@ -428,6 +444,10 @@ resource "aws_vpc_endpoint" "eb" {
 
   tags = {
     Name = "${var.resource_prefix}-eb-vpce"
+  }
+
+  lifecycle {
+    ignore_changes = all
   }
 }
 
@@ -442,6 +462,10 @@ resource "aws_vpc_endpoint" "eb_health" {
   tags = {
     Name = "${var.resource_prefix}-eb-health-vpce"
   }
+
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 resource "aws_vpc_endpoint" "sqs" {
@@ -454,6 +478,10 @@ resource "aws_vpc_endpoint" "sqs" {
 
   tags = {
     Name = "${var.resource_prefix}-sqs-vpce"
+  }
+
+  lifecycle {
+    ignore_changes = all
   }
 }
 
@@ -468,6 +496,10 @@ resource "aws_vpc_endpoint" "sts" {
   tags = {
     Name = "${var.resource_prefix}-sts-vpce"
   }
+
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 resource "aws_vpc_endpoint" "ec2" {
@@ -480,6 +512,10 @@ resource "aws_vpc_endpoint" "ec2" {
 
   tags = {
     Name = "${var.resource_prefix}-ec2-vpce"
+  }
+
+  lifecycle {
+    ignore_changes = all
   }
 }
 
@@ -494,6 +530,10 @@ resource "aws_vpc_endpoint" "logs" {
   tags = {
     Name = "${var.resource_prefix}-logs-vpce"
   }
+
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 resource "aws_vpc_endpoint" "ssm" {
@@ -506,6 +546,10 @@ resource "aws_vpc_endpoint" "ssm" {
 
   tags = {
     Name = "${var.resource_prefix}-ssm-vpce"
+  }
+
+  lifecycle {
+    ignore_changes = all
   }
 }
 
@@ -520,6 +564,10 @@ resource "aws_vpc_endpoint" "ssmmessages" {
   tags = {
     Name = "${var.resource_prefix}-ssm-msg-vpce"
   }
+
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 resource "aws_vpc_endpoint" "ec2messages" {
@@ -532,6 +580,10 @@ resource "aws_vpc_endpoint" "ec2messages" {
 
   tags = {
     Name = "${var.resource_prefix}-ec2-msg-vpce"
+  }
+
+  lifecycle {
+    ignore_changes = all
   }
 }
 
@@ -546,6 +598,10 @@ resource "aws_vpc_endpoint" "autoscaling" {
   tags = {
     Name = "${var.resource_prefix}-asg-vpce"
   }
+
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 resource "aws_vpc_endpoint" "monitoring" {
@@ -558,6 +614,10 @@ resource "aws_vpc_endpoint" "monitoring" {
 
   tags = {
     Name = "${var.resource_prefix}-monitoring-vpce"
+  }
+
+  lifecycle {
+    ignore_changes = all
   }
 }
 
@@ -572,6 +632,10 @@ resource "aws_vpc_endpoint" "cloudformation" {
   tags = {
     Name = "${var.resource_prefix}-cfn-vpce"
   }
+
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 resource "aws_vpc_endpoint" "s3" {
@@ -582,6 +646,10 @@ resource "aws_vpc_endpoint" "s3" {
 
   tags = {
     Name = "${var.resource_prefix}-s3-vpce"
+  }
+
+  lifecycle {
+    ignore_changes = all
   }
 }
 

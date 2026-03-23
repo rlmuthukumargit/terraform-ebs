@@ -25,9 +25,10 @@ max_instances       = 2
 root_volume_size    = 20
 
 # --- S3 Application Source ---
-app_version_label = "v1"
-app_s3_bucket     = "tss-ebs-dev-artifacts-replace-with-account-id" 
-app_s3_key        = "releases/app-v1.zip" # Path to your ZIP file in S3
+app_version_label = "v6"
+app_s3_bucket     = "tss-ebs-dev-artifacts-911287867452"
+app_s3_key        = "releases/snapshot.jar" # Path to your ZIP file in S3
+app_local_path    = "snapshot.jar"          # Local file to upload
 
 # --- Logging ---
 log_retention_days = 14
@@ -52,7 +53,8 @@ eb_environment_cname_prefix = "tss-app-dev" # Domain: myapp-dev-911287867452.<re
 alb_scheme = "internal"
 eb_environment_variables = {
   APP_ENV     = "dev"
-  SERVER_PORT = "5000"
+  SERVER_PORT = "8080"
+  PORT        = "8080"
 }
 
 # --- Shared ALB (set to true to share one ALB across multiple apps) ---
