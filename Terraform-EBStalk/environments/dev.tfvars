@@ -25,10 +25,10 @@ max_instances       = 2
 root_volume_size    = 20
 
 # --- S3 Application Source ---
-app_version_label = "v6"
+app_version_label = "v9"
 app_s3_bucket     = "tss-ebs-dev-artifacts-911287867452"
 app_s3_key        = "releases/snapshot.jar" # Path to your ZIP file in S3
-app_local_path    = "snapshot.jar"          # Local file to upload
+app_local_path    = "snapshot-v9.jar"          # Local file to upload
 
 # --- Logging ---
 log_retention_days = 14
